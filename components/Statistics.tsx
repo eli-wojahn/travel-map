@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Place } from '@/types';
 import { getCountryFlag } from '@/lib/countryFlags';
+import * as Collapsible from '@radix-ui/react-collapsible';
 
 interface StatisticsProps {
   places: Place[];
@@ -13,6 +14,7 @@ interface StatisticsProps {
  * Mostra total de cidades, países visitados e lista de países
  */
 export default function Statistics({ places }: StatisticsProps) {
+  const [openCountries, setOpenCountries] = useState(false);
   // Calcula estatísticas baseadas nos lugares
   const stats = useMemo(() => {
     const totalCities = places.length;
@@ -77,28 +79,71 @@ export default function Statistics({ places }: StatisticsProps) {
 
       {/* Lista de países visitados */}
       {stats.totalCountries > 0 && (
-        <div>
-          <h4 className="font-medium text-gray-700 mb-2">Países Visitados:</h4>
-          <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {stats.uniqueCountries.map((country) => {
-              const cityCount = stats.citiesByCountry.get(country) || 0;
-              return (
-                <div
-                  key={country}
-                  className="flex items-center justify-between p-2"
+        <Collapsible.Root open={openCountries} onOpenChange={setOpenCountries}>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-medium text-gray-700">Países Visitados:</h4>
+            {stats.totalCountries > 8 && (
+              <Collapsible.Trigger asChild>
+                <button
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  aria-label={openCountries ? 'Recolher' : 'Expandir'}
+                  title={openCountries ? 'Recolher' : 'Expandir'}
                 >
-                  <span className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                    <span className="text-lg">{getCountryFlag(country)}</span>
-                    <span>{country}</span>
-                  </span>
-                  <span className="text-xs text-gray-600">
-                    {cityCount} {cityCount === 1 ? 'cidade' : 'cidades'}
-                  </span>
-                </div>
-              );
-            })}
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`transition-transform duration-200 ${openCountries ? 'rotate-180' : ''}`}
+                  >
+                    <path
+                      d="M6 8l4 4 4-4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </Collapsible.Trigger>
+            )}
           </div>
-        </div>
+          <Collapsible.Content forceMount>
+            <div className="space-y-2">
+              {(openCountries || stats.totalCountries <= 8
+                ? stats.uniqueCountries
+                : stats.uniqueCountries.slice(0, 8)
+              ).map((country) => {
+                const cityCount = stats.citiesByCountry.get(country) || 0;
+                return (
+                  <div
+                    key={country}
+                    className="flex items-center justify-between p-2"
+                  >
+                    <span className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                      <span className="text-lg">{getCountryFlag(country)}</span>
+                      <span>{country}</span>
+                    </span>
+                    <span className="text-xs text-gray-600">
+                      {cityCount} {cityCount === 1 ? 'cidade' : 'cidades'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </Collapsible.Content>
+          {!openCountries && stats.totalCountries > 8 && (
+            <Collapsible.Trigger asChild>
+              <button
+                onClick={() => setOpenCountries(true)}
+                className="w-full py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded transition-colors font-medium"
+              >
+                Ver mais ({stats.totalCountries - 8} restantes)
+              </button>
+            </Collapsible.Trigger>
+          )}
+        </Collapsible.Root>
       )}
     </div>
   );

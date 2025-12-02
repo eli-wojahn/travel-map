@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { Place } from '@/types';
 import { getCountryFlag } from '@/lib/countryFlags';
+import * as Collapsible from '@radix-ui/react-collapsible';
 import {
   DndContext,
   closestCenter,
@@ -125,6 +127,7 @@ export default function CityList({
   onRemovePlace,
   onReorderPlaces,
 }: CityListProps) {
+  const [open, setOpen] = useState(false);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -152,32 +155,72 @@ export default function CityList({
   }
 
   return (
-    <div className="space-y-2">
-      <h3 className="font-semibold text-lg mb-4">
-        Cidades Visitadas
-      </h3>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={places.map((place) => place.id)}
-          strategy={verticalListSortingStrategy}
+    <Collapsible.Root open={open} onOpenChange={setOpen}>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold text-lg">Cidades Visitadas</h3>
+        {places.length > 6 && (
+          <Collapsible.Trigger asChild>
+            <button
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              aria-label={open ? 'Recolher' : 'Expandir'}
+              title={open ? 'Recolher' : 'Expandir'}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+              >
+                <path
+                  d="M6 8l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </Collapsible.Trigger>
+        )}
+      </div>
+      <Collapsible.Content forceMount>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
-          <div className="space-y-2 max-h-[600px] overflow-y-auto">
-            {places.map((place, index) => (
-              <SortableCityItem
-                key={place.id}
-                place={place}
-                index={index}
-                onRemovePlace={onRemovePlace}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-    </div>
+          <SortableContext
+            items={places.map((place) => place.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              {(open || places.length <= 6
+                ? places
+                : places.slice(0, 6)
+              ).map((place, index) => (
+                <SortableCityItem
+                  key={place.id}
+                  place={place}
+                  index={index}
+                  onRemovePlace={onRemovePlace}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      </Collapsible.Content>
+      {!open && places.length > 6 && (
+        <Collapsible.Trigger asChild>
+          <button
+            onClick={() => setOpen(true)}
+            className="w-full py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded transition-colors font-medium"
+          >
+            Ver mais ({places.length - 6} restantes)
+          </button>
+        </Collapsible.Trigger>
+      )}
+    </Collapsible.Root>
   );
 }
