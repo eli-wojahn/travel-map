@@ -58,30 +58,25 @@ function SortableCityItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ${
+      className={`flex items-center justify-between p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors ${
         isDragging ? 'shadow-lg' : ''
       }`}
     >
       <div className="flex items-center gap-2 flex-1 min-w-0" {...attributes} {...listeners}>
         <div className="flex-1 min-w-0 cursor-grab active:cursor-grabbing">
           {/* NÚMERO + NOME */}
-          <p className="font-medium text-gray-900 truncate">
-            {index + 1}. {place.name}
-            {place.state && (
-              <span className="text-gray-500 font-normal">
-                {`, ${place.state}`}
-              </span>
-            )}
-          </p>
+<p className="font-medium text-gray-900 truncate">
+  {index + 1}. {place.name}
+</p>
 
-          {(place.country || place.state) && (
-            <p className="text-sm text-gray-600 flex items-center gap-1">
-              {place.country && <span>{getCountryFlag(place.country)}</span>}
-              <span>
-                {[place.state, place.country].filter(Boolean).join(', ')}
-              </span>
-            </p>
-          )}
+{(place.country || place.state) && (
+  <p className="text-sm text-gray-600 flex items-center gap-1">
+    {place.country && <span>{getCountryFlag(place.country)}</span>}
+    <span>
+      {[place.state, place.country].filter(Boolean).join(', ')}
+    </span>
+  </p>
+)}
 
           <p className="text-xs text-gray-500 mt-1">
             {new Date(place.createdAt).toLocaleDateString('pt-BR', {
@@ -156,34 +151,8 @@ export default function CityList({
 
   return (
     <Collapsible.Root open={open} onOpenChange={setOpen}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4">
         <h3 className="font-semibold text-lg">Cidades Visitadas</h3>
-        {places.length > 6 && (
-          <Collapsible.Trigger asChild>
-            <button
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              aria-label={open ? 'Recolher' : 'Expandir'}
-              title={open ? 'Recolher' : 'Expandir'}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-              >
-                <path
-                  d="M6 8l4 4 4-4"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </Collapsible.Trigger>
-        )}
       </div>
       <Collapsible.Content forceMount>
         <DndContext
@@ -211,15 +180,33 @@ export default function CityList({
           </SortableContext>
         </DndContext>
       </Collapsible.Content>
-      {!open && places.length > 6 && (
-        <Collapsible.Trigger asChild>
-          <button
-            onClick={() => setOpen(true)}
-            className="w-full py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded transition-colors font-medium"
-          >
-            Ver mais ({places.length - 6} restantes)
-          </button>
-        </Collapsible.Trigger>
+      {places.length > 6 && (
+        <div className="flex justify-center mt-2">
+          <Collapsible.Trigger asChild>
+            <button
+              className="w-10 h-10 flex items-center justify-center bg-green text-white rounded-lg hover:opacity-90 transition-opacity"
+              aria-label={open ? 'Recolher' : 'Expandir'}
+              title={open ? 'Recolher' : 'Expandir'}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+              >
+                <path
+                  d="M8 10l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </Collapsible.Trigger>
+        </div>
       )}
     </Collapsible.Root>
   );
