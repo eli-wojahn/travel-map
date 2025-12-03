@@ -6,6 +6,7 @@ import { usePlaces } from '@/hooks/usePlaces';
 import CityInput from '@/components/CityInput';
 import CityList from '@/components/CityList';
 import Statistics from '@/components/Statistics';
+import WorldMapSimple from '@/components/WorldMapSimple';
 import Modal from '@/components/Modal';
 import { Place } from '@/types';
 
@@ -44,14 +45,9 @@ export default function Home() {
   const handleMapClick = useCallback(async (lat: number, lng: number) => {
     try {
       // Faz geocodificação reversa para obter o nome da cidade
-      // Usa a API Nominatim em modo reverso
+      // Usa a API Nominatim em modo reverso (chamada direta do cliente, como antes)
       const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'LugaresDoMundo/1.0',
-        },
-      });
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error('Erro ao buscar informações do local');
@@ -172,6 +168,11 @@ export default function Home() {
           <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm min-h-56">
             <Statistics places={places} />
           </div>
+        </div>
+
+        {/* Mapa simplificado com react-simple-maps para marcar países visitados */}
+        <div className="max-w-6xl mx-auto mt-6">
+          <WorldMapSimple places={places} />
         </div>
 
         {/* Rodapé */}
