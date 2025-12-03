@@ -60,11 +60,11 @@ export default function Statistics({ places }: StatisticsProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full">
       <h3 className="font-semibold text-lg mb-4">
         Estatísticas
       </h3>
-      
+
       {/* Cards de estatísticas principais */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="p-4 text-center">
@@ -83,7 +83,10 @@ export default function Statistics({ places }: StatisticsProps) {
           <div className="mb-2">
             <h4 className="font-medium text-gray-700">Países Visitados</h4>
           </div>
-          <Collapsible.Content forceMount>
+          <Collapsible.Content
+            forceMount
+            className={`flex-1 overflow-auto ${stats.totalCountries > 8 && !openCountries ? 'pb-10' : ''}`}
+          >
             <div className="space-y-2">
               {(openCountries || stats.totalCountries <= 8
                 ? stats.uniqueCountries
@@ -108,7 +111,7 @@ export default function Statistics({ places }: StatisticsProps) {
             </div>
           </Collapsible.Content>
           {stats.totalCountries > 8 && (
-            <div className="flex justify-center mt-2">
+            <div className="h-12 flex items-center justify-center">
               <Collapsible.Trigger asChild>
                 <button
                   className="w-10 h-10 flex items-center justify-center bg-green text-white rounded-lg hover:opacity-90 transition-opacity"

@@ -150,11 +150,15 @@ export default function CityList({
   }
 
   return (
-    <Collapsible.Root open={open} onOpenChange={setOpen}>
-      <div className="mb-4">
-        <h3 className="font-semibold text-lg">Cidades Visitadas</h3>
-      </div>
-      <Collapsible.Content forceMount>
+    <div className="flex flex-col h-full">
+      <Collapsible.Root open={open} onOpenChange={setOpen}>
+        <div className="mb-4">
+          <h3 className="font-semibold text-lg">Cidades Visitadas</h3>
+        </div>
+        <Collapsible.Content
+          forceMount
+          className={`flex-1 overflow-auto ${places.length > 6 && !open ? 'pb-5' : ''}`}
+        >
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -179,9 +183,9 @@ export default function CityList({
             </div>
           </SortableContext>
         </DndContext>
-      </Collapsible.Content>
+        </Collapsible.Content>
       {places.length > 6 && (
-        <div className="flex justify-center mt-2">
+        <div className="h-12 flex items-center justify-center">
           <Collapsible.Trigger asChild>
             <button
               className="w-10 h-10 flex items-center justify-center bg-green text-white rounded-lg hover:opacity-90 transition-opacity"
@@ -208,6 +212,7 @@ export default function CityList({
           </Collapsible.Trigger>
         </div>
       )}
-    </Collapsible.Root>
+      </Collapsible.Root>
+    </div>
   );
 }

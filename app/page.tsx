@@ -162,14 +162,14 @@ export default function Home() {
         </div>
 
         {/* Lista de cidades e Estatísticas lado a lado */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto items-start">
           {/* Lista de cidades */}
-          <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm">
+          <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm min-h-56">
             <CityList places={places} onRemovePlace={removePlace} onReorderPlaces={reorderPlaces} />
           </div>
 
           {/* Estatísticas */}
-          <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm">
+          <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm min-h-56">
             <Statistics places={places} />
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function Home() {
         <Modal
           isOpen={showSaveModal}
           title="Salvar Lugares"
-          message="Funcionalidade de salvar será implementada em breve! Seus dados já estão sendo salvos automaticamente no navegador."
+          message="Seus dados já estão sendo salvos automaticamente no navegador. Funcionalidade de salvar será implementada em breve! ."
           confirmText="Entendi"
           cancelText="Fechar"
           type="info"
