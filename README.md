@@ -21,6 +21,8 @@ Um mapa interativo onde você pode marcar e visualizar todos os lugares que já 
 - **OpenStreetMap / Nominatim** para geocodificação (gratuito e open-source)
 - **Tailwind CSS** para estilização
 - **localStorage** para persistência de dados
+ - **react-simple-maps** para visualização simplificada de países (mapa estático)
+ - **world-countries** para metadados de países usados pelo mapa simplificado
 
 ## 📦 Instalação
 
