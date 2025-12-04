@@ -170,7 +170,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Mapa simplificado com react-simple-maps para marcar países visitados */}
+        {/* Mapa simplificado com react-simple-maps */}
         <div className="max-w-6xl mx-auto mt-6">
           <WorldMapSimple places={places} />
         </div>

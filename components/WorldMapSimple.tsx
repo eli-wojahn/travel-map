@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
-import countriesData from 'world-countries';
 import { Place } from '@/types';
 
 const GEO_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
@@ -15,6 +14,166 @@ function normalize(str?: string) {
   return (str || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
 }
 
+// Mapa manual de equivalência entre nomes Nominatim / português e nomes do GeoJSON (em inglês)
+// Cobre variações em PT e EN, traduções comuns e formas alternativas
+const COUNTRY_ALIASES: Record<string, string> = {
+  // Português -> GeoJSON (inglês)
+  'brasil': 'brazil',
+  'argentina': 'argentina',
+  'bolívia': 'bolivia',
+  'chile': 'chile',
+  'colômbia': 'colombia',
+  'equador': 'ecuador',
+  'guiana': 'guyana',
+  'guiana francesa': 'french guiana',
+  'surinã': 'suriname',
+  'paraguai': 'paraguay',
+  'peru': 'peru',
+  'uruguai': 'uruguay',
+  'venezuela': 'venezuela',
+
+  // Europa
+  'alemanha': 'germany',
+  'áustria': 'austria',
+  'bélgica': 'belgium',
+  'bósnia': 'bosnia and herzegovina',
+  'bulgária': 'bulgaria',
+  'croácia': 'croatia',
+  'chipre': 'cyprus',
+  'tchéquia': 'czech republic',
+  'dinamarca': 'denmark',
+  'eslovênia': 'slovenia',
+  'eslovaquia': 'slovakia',
+  'espanha': 'spain',
+  'estônia': 'estonia',
+  'finlândia': 'finland',
+  'frança': 'france',
+  'grécia': 'greece',
+  'hungria': 'hungary',
+  'irlanda': 'ireland',
+  'itália': 'italy',
+  'letônia': 'latvia',
+  'lituânia': 'lithuania',
+  'luxemburgo': 'luxembourg',
+  'macedônia': 'north macedonia',
+  'malta': 'malta',
+  'moldova': 'moldova',
+  'mônaco': 'monaco',
+  'montenegro': 'montenegro',
+  'noruega': 'norway',
+  'países baixos': 'netherlands',
+  'holanda': 'netherlands',
+  'polônia': 'poland',
+  'portugal': 'portugal',
+  'romênia': 'romania',
+  'rússia': 'russia',
+  'sérvia': 'serbia',
+  'suécia': 'sweden',
+  'suíça': 'switzerland',
+  'turquia': 'turkey',
+  'ucrânia': 'ukraine',
+  'reino unido': 'england',
+
+  // África
+  'áfrica do sul': 'south africa',
+  'argélia': 'algeria',
+  'angola': 'angola',
+  'benin': 'benin',
+  'botswana': 'botswana',
+  'burquina fasso': 'burkina faso',
+  'burkina faso': 'burkina faso',
+  'burundi': 'burundi',
+  'cabo verde': 'cape verde',
+  'camarões': 'cameroon',
+  'chade': 'chad',
+  'comores': 'comoros',
+  'costa do marfim': 'côte d\'ivoire',
+  'egito': 'egypt',
+  'eritreia': 'eritrea',
+  'eswatini': 'eswatini',
+  'etiopia': 'ethiopia',
+  'gana': 'ghana',
+  'guiné': 'guinea',
+  'guiné-bissau': 'guinea-bissau',
+  'kenya': 'kenya',
+  'lesoto': 'lesotho',
+  'libéria': 'liberia',
+  'líbia': 'libya',
+  'madagascar': 'madagascar',
+  'malawi': 'malawi',
+  'mali': 'mali',
+  'marrocos': 'morocco',
+  'moçambique': 'mozambique',
+  'namíbia': 'namibia',
+  'níger': 'niger',
+  'nigéria': 'nigeria',
+  'república do congo': 'congo (brazzaville)',
+  'república democrática do congo': 'congo (kinshasa)',
+  'ruanda': 'rwanda',
+  'são tomé e príncipe': 'sao tome and principe',
+  'senegal': 'senegal',
+  'seicheles': 'seychelles',
+  'sierra leone': 'sierra leone',
+  'somalia': 'somalia',
+  'sudão': 'sudan',
+  'tanzânia': 'tanzania',
+  'tunísia': 'tunisia',
+  'uganda': 'uganda',
+  'zâmbia': 'zambia',
+  'zimbábue': 'zimbabwe',
+
+  // Ásia e Oceania
+  'china': 'china',
+  'índia': 'india',
+  'indonésia': 'indonesia',
+  'iraque': 'iraq',
+  'irã': 'iran',
+  'israel': 'israel',
+  'japão': 'japan',
+  'jordânia': 'jordan',
+  'cazaquistão': 'kazakhstan',
+  'kuwait': 'kuwait',
+  'laos': 'laos',
+  'líbano': 'lebanon',
+  'malásia': 'malaysia',
+  'maldivas': 'maldives',
+  'mongólia': 'mongolia',
+  'mianmar': 'myanmar',
+  'nepal': 'nepal',
+  'coreia do sul': 'south korea',
+  'coreia do norte': 'north korea',
+  'omã': 'oman',
+  'paquistão': 'pakistan',
+  'filipinas': 'philippines',
+  'qatar': 'qatar',
+  'arabia saudita': 'saudi arabia',
+  'singapura': 'singapore',
+  'sri lanka': 'sri lanka',
+  'síria': 'syria',
+  'tailândia': 'thailand',
+  'timor-leste': 'east timor',
+  'turcomenistão': 'turkmenistan',
+  'emirados árabes': 'united arab emirates',
+  'uzbequistão': 'uzbekistan',
+  'vietnam': 'vietnam',
+  'austrália': 'australia',
+  'nova zelândia': 'new zealand',
+
+  // Variantes e formas em inglês (Nominatim)
+  'united states': 'usa',
+  'estados unidos da américa': 'usa',
+  'united states of america': 'usa',
+  'usa': 'usa',
+  'united kingdom': 'england',
+  'great britain': 'england',
+  'britain': 'england',
+  'uk': 'england',
+  'england': 'england',
+  'scotland': 'england',
+  'wales': 'england',
+  'northern ireland': 'england',
+};
+
 export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
   const visitedCountries = useMemo(() => {
     return Array.from(new Set(places.map((p) => p.country).filter(Boolean))) as string[];
@@ -22,92 +181,53 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
 
   const visitedCountriesNorm = useMemo(() => visitedCountries.map((c) => normalize(c)), [visitedCountries]);
 
-  // Precompute a lookup map of all possible normalized names -> country record
-  const nameToCountryMap = useMemo(() => {
-    const map = new Map<string, any>();
-    countriesData.forEach((c: any) => {
-      // common and official
-      const common = normalize(c.name?.common);
-      const official = normalize(c.name?.official);
-      if (common) map.set(common, c);
-      if (official) map.set(official, c);
+  // Criar um mapa de nomes GeoJSON normalizados para comparação
+  // Este será preenchido assim que o GeoJSON for carregado
+  const [geoCountryNames, setGeoCountryNames] = useState<Set<string>>(new Set());
 
-      // alt spellings
-      (c.altSpellings || []).forEach((a: string) => {
-        const n = normalize(a);
-        if (n) map.set(n, c);
-      });
+  // Função para encontrar o nome do país no GeoJSON
+  function matchGeoCountry(nominatimCountry: string): string | null {
+    const norm = normalize(nominatimCountry);
 
-      // translations (include all languages available)
-      const translations = c.translations || {};
-      Object.values(translations).forEach((t: any) => {
-        if (!t) return;
-        const tCommon = normalize(t.common);
-        const tOfficial = normalize(t.official);
-        if (tCommon) map.set(tCommon, c);
-        if (tOfficial) map.set(tOfficial, c);
-      });
+    // 1. Try direct normalization match
+    if (geoCountryNames.has(norm)) {
+      return norm;
+    }
 
-      // ISO codes
-      if (c.cca2) map.set(normalize(c.cca2), c);
-      if (c.cca3) map.set(normalize(c.cca3), c);
-    });
-    return map;
-  }, []);
-
-  // helper to find country record from geo name
-  function matchCountryByName(name?: string) {
-    if (!name) return undefined;
-    const n = normalize(name);
-
-    // fast exact lookup via precomputed map
-    const direct = nameToCountryMap.get(n);
-    if (direct) return direct;
-
-    // fallback fuzzy: check contains/substring matches across common/official/alt/translations
-    const found = countriesData.find((c: any) => {
-      const common = normalize(c.name?.common);
-      const official = normalize(c.name?.official);
-      if (common && (n.includes(common) || common.includes(n))) return true;
-      if (official && (n.includes(official) || official.includes(n))) return true;
-
-      const alt = (c.altSpellings || []).map((a: string) => normalize(a));
-      if (alt.some((a: string) => a && (n.includes(a) || a.includes(n)))) return true;
-
-      const translations = c.translations || {};
-      for (const t of Object.values(translations) as any[]) {
-        if (!t) continue;
-        const tCommon = normalize(t.common);
-        const tOfficial = normalize(t.official);
-        if (tCommon && (n.includes(tCommon) || tCommon.includes(n))) return true;
-        if (tOfficial && (n.includes(tOfficial) || tOfficial.includes(n))) return true;
+    // 2. Try alias mapping
+    const aliasKey = Object.keys(COUNTRY_ALIASES).find((k) => normalize(k) === norm);
+    if (aliasKey) {
+      const aliasTarget = normalize(COUNTRY_ALIASES[aliasKey]);
+      if (geoCountryNames.has(aliasTarget)) {
+        return aliasTarget;
       }
+    }
 
-      return false;
-    });
-    return found;
+    // 3. Try fuzzy substring match
+    for (const geoName of geoCountryNames) {
+      if (norm.includes(geoName) || geoName.includes(norm)) {
+        return geoName;
+      }
+    }
+
+    return null;
   }
 
+  function isGeoVisited(geo: any): boolean {
+    const geoName = geo.properties?.NAME || geo.properties?.name;
+    if (!geoName) return false;
 
-  // set of visited country names normalized
-  const visitedCountriesSet = useMemo(() => new Set(visitedCountriesNorm), [visitedCountriesNorm]);
+    const geoNorm = normalize(geoName);
 
-  function isGeoVisited(geo: any) {
-    const geoName = geo.properties?.NAME || geo.properties?.name || geo.properties?.admin || geo.properties?.sovereignty;
-    const matched = matchCountryByName(geoName) as any | undefined;
-    if (!matched) return false;
+    // Verificar se este país do GeoJSON está em visitedCountries
+    for (const visited of visitedCountriesNorm) {
+      if (visited === geoNorm) return true;
 
-    const common = normalize(matched.name.common);
-    const official = normalize(matched.name.official);
-    const alts = (matched.altSpellings || []).map((a: string) => normalize(a));
-
-    if (visitedCountriesSet.has(common) || visitedCountriesSet.has(official)) return true;
-    if (alts.some((a: string) => visitedCountriesSet.has(a))) return true;
-
-    // try fuzzy contains
-    for (const v of visitedCountriesSet) {
-      if (v.includes(common) || common.includes(v) || v.includes(official) || official.includes(v)) return true;
+      // Tentar match com alias
+      const match = matchGeoCountry(visited);
+      if (match === geoNorm) return true;
     }
+
     return false;
   }
 
@@ -121,41 +241,53 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
   const unrecognizedCountries = useMemo(() => {
     const list: string[] = [];
     visitedCountries.forEach((original) => {
-      const matched = matchCountryByName(original);
-      if (!matched) list.push(original);
+      const match = matchGeoCountry(original);
+      if (!match) {
+        list.push(original);
+      }
     });
     return Array.from(new Set(list));
-  }, [visitedCountries]);
+  }, [visitedCountries, geoCountryNames]);
 
-  // log to console for easier copy-paste
-  if (unrecognizedCountries.length > 0) {
-    console.debug('WorldMapSimple - países não reconhecidos:', unrecognizedCountries);
-  }
+  // Debug: log all available geo countries on load
+  // removed debug effect
 
   return (
     <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm">
-      <h3 className="font-semibold text-lg mb-4">Mapa (continentes coloridos por visitas)</h3>
+      <h3 className="font-semibold text-lg mb-4">Mapa (países coloridos por visitas)</h3>
       <div className="w-full">
         <ComposableMap projectionConfig={{ scale: 145 }}>
           <Geographies geography={GEO_URL}>
-            {({ geographies }: any) => (
-              <>
-                {geographies.map((geo: any) => (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    fill={getFillForGeo(geo)}
-                    stroke="#ffffff"
-                    strokeWidth={0.3}
-                    style={{
-                      default: { outline: 'none' },
-                      hover: { outline: 'none', opacity: 0.85 },
-                      pressed: { outline: 'none' },
-                    }}
-                  />
-                ))}
-              </>
-            )}
+            {({ geographies }: any) => {
+              // Extract country names from GeoJSON on first load
+              if (geographies.length > 0 && geoCountryNames.size === 0) {
+                const names = new Set<string>();
+                geographies.forEach((geo: any) => {
+                  const name = geo.properties?.NAME || geo.properties?.name;
+                  if (name) names.add(normalize(name));
+                });
+                setGeoCountryNames(names);
+              }
+
+              return (
+                <>
+                  {geographies.map((geo: any) => (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      fill={getFillForGeo(geo)}
+                      stroke="#ffffff"
+                      strokeWidth={0.3}
+                      style={{
+                        default: { outline: 'none' },
+                        hover: { outline: 'none', opacity: 0.85 },
+                        pressed: { outline: 'none' },
+                      }}
+                    />
+                  ))}
+                </>
+              );
+            }}
           </Geographies>
         </ComposableMap>
       </div>
