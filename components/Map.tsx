@@ -99,6 +99,8 @@ export default function Map({ places, onMapClick }: MapProps) {
       <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
+        minZoom={2}
+        worldCopyJump={true}
         style={{ height: '600px', width: '100%' }}
         scrollWheelZoom={true}
       >

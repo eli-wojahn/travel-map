@@ -127,6 +127,7 @@ const countryFlags: Record<string, string> = {
   'Kosovo': '🇽🇰',
   'Groenlândia': '🇬🇱',
   'Canadá': '🇨🇦',
+  'Tchéquia': '🇨🇿',
   
   // Países em inglês (fallback)
   'Brazil': '🇧🇷',

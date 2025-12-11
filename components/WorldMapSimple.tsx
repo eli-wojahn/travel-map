@@ -72,7 +72,8 @@ const COUNTRY_ALIASES: Record<string, string> = {
   'suíça': 'switzerland',
   'turquia': 'turkey',
   'ucrânia': 'ukraine',
-  'reino unido': 'england',
+  'reino unido': 'england', 
+  'vaticano': 'italy',
 
   // África
   'áfrica do sul': 'south africa',

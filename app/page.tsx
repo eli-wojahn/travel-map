@@ -8,6 +8,7 @@ import CityList from '@/components/CityList';
 import Statistics from '@/components/Statistics';
 import WorldMapSimple from '@/components/WorldMapSimple';
 import Modal from '@/components/Modal';
+import { getCountryFlag } from '@/lib/countryFlags';
 import { Place } from '@/types';
 
 // Importação dinâmica do Map para evitar problemas de SSR
@@ -26,16 +27,21 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
 
   // Handler para adicionar lugar via input
   const handleAddPlace = useCallback(
     (place: Omit<Place, 'id' | 'createdAt'>) => {
-      const result = addPlace(place);
-      if (!result) {
+      const addedPlace = addPlace(place);
+      if (!addedPlace) {
         setError('Essa cidade já está na sua lista.');
         return false;
       }
       setError(null);
+      // Show confirmation modal with the newly added place
+      setRecentlyAddedPlace(addedPlace);
+      setShowConfirmModal(true);
       return true;
     },
     [addPlace]
@@ -61,7 +67,7 @@ export default function Home() {
                    `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
       const country = data.address?.country || undefined;
 
-      const result = addPlace({
+      const placeData = {
         name,
         state:
           data.address?.state ||
@@ -71,14 +77,19 @@ export default function Home() {
         country,
         latitude: lat,
         longitude: lng,
-      });
+      };
 
-      if (!result) {
+      const addedPlace = addPlace(placeData);
+
+      if (!addedPlace) {
         setError('Essa cidade já está na sua lista.');
         return;
       }
 
       setError(null);
+      // Show confirmation modal
+      setRecentlyAddedPlace(addedPlace);
+      setShowConfirmModal(true);
     } catch (err) {
       const errorMessage = err instanceof Error 
         ? err.message 
@@ -216,6 +227,51 @@ export default function Home() {
           }}
           onCancel={() => setShowClearModal(false)}
         />
+
+        {/* Modal de Confirmação de Cidade Adicionada */}
+        {recentlyAddedPlace && (
+          <Modal
+            isOpen={showConfirmModal}
+            title="Cidade Adicionada!"
+            message={
+              <div className="space-y-2">
+                <p className="font-semibold text-lg">{recentlyAddedPlace.name}</p>
+                {(recentlyAddedPlace.state || recentlyAddedPlace.country) && (
+                  <p className="text-gray-600 flex items-center gap-1">
+                    {recentlyAddedPlace.country && (
+                      <span>{getCountryFlag(recentlyAddedPlace.country)}</span>
+                    )}
+                    <span>
+                      {[recentlyAddedPlace.state, recentlyAddedPlace.country].filter(Boolean).join(', ')}
+                    </span>
+                  </p>
+                )}
+                <p className="text-sm text-gray-500">
+                  Adicionada em: {new Date(recentlyAddedPlace.createdAt).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })}
+                </p>
+              </div>
+            }
+            confirmText="OK"
+            cancelText="Remover"
+            type="info"
+            onConfirm={() => {
+              setShowConfirmModal(false);
+              setRecentlyAddedPlace(null);
+            }}
+            onCancel={() => {
+              // Remove the recently added place
+              if (recentlyAddedPlace) {
+                removePlace(recentlyAddedPlace.id);
+              }
+              setShowConfirmModal(false);
+              setRecentlyAddedPlace(null);
+            }}
+          />
+        )}
       </div>
     </main>
   );
