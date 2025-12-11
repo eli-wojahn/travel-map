@@ -5,7 +5,7 @@ import { ReactNode } from 'react';
 interface ModalProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: string | ReactNode;
   confirmText?: string;
   cancelText?: string;
   onConfirm: () => void;

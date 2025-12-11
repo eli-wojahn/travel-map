@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { Place } from '@/types';
 
@@ -187,7 +187,7 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
   const [geoCountryNames, setGeoCountryNames] = useState<Set<string>>(new Set());
 
   // Função para encontrar o nome do país no GeoJSON
-  function matchGeoCountry(nominatimCountry: string): string | null {
+  const matchGeoCountry = useCallback((nominatimCountry: string): string | null => {
     const norm = normalize(nominatimCountry);
 
     // 1. Try direct normalization match
@@ -212,7 +212,7 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
     }
 
     return null;
-  }
+  }, [geoCountryNames]);
 
   function isGeoVisited(geo: any): boolean {
     const geoName = geo.properties?.NAME || geo.properties?.name;
@@ -248,7 +248,7 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
       }
     });
     return Array.from(new Set(list));
-  }, [visitedCountries, geoCountryNames]);
+  }, [visitedCountries, geoCountryNames, matchGeoCountry]);
 
   // Debug: log all available geo countries on load
   // removed debug effect
