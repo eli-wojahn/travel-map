@@ -235,9 +235,15 @@ export default function Home() {
             title="Cidade Adicionada!"
             message={
               <div className="space-y-2">
+                {/* Detecta se é apenas coordenada (nome contém vírgula e números) */}
+                {recentlyAddedPlace.name.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/) && (
+                  <p className="text-yellow-600 font-medium text-sm mb-2">
+                    ⚠️ O local adicionado não é uma cidade.
+                  </p>
+                )}
                 <p className="font-semibold text-lg">{recentlyAddedPlace.name}</p>
                 {(recentlyAddedPlace.state || recentlyAddedPlace.country) && (
-                  <p className="text-gray-600 flex items-center gap-1">
+                  <p className="text-gray-600 flex items-center gap-1 justify-center">
                     {recentlyAddedPlace.country && (
                       <span>{getCountryFlag(recentlyAddedPlace.country)}</span>
                     )}
