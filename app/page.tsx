@@ -22,30 +22,58 @@ const Map = dynamic(() => import('@/components/Map'), {
   ),
 });
 
+// Importação dinâmica do DotLottieReact
+const DotLottieReact = dynamic(
+  () => import('@lottiefiles/dotlottie-react').then((mod) => mod.DotLottieReact),
+  { ssr: false }
+);
+
 export default function Home() {
   const { places, isLoading, addPlace, removePlace, clearPlaces, reorderPlaces } = usePlaces();
   const [error, setError] = useState<string | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showAnimationModal, setShowAnimationModal] = useState(false);
+  const [animationLoaded, setAnimationLoaded] = useState(false);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
 
   // Handler para adicionar lugar via input
   const handleAddPlace = useCallback(
     (place: Omit<Place, 'id' | 'createdAt'>) => {
+      const isFirstPlace = places.length === 0;
       const addedPlace = addPlace(place);
       if (!addedPlace) {
         setError('Essa cidade já está na sua lista.');
         return false;
       }
       setError(null);
-      // Show confirmation modal with the newly added place
       setRecentlyAddedPlace(addedPlace);
-      setShowConfirmModal(true);
+
+      // Se é a primeira cidade, mostra animação primeiro
+      if (isFirstPlace) {
+        setAnimationLoaded(false);
+        setShowAnimationModal(true);
+        // Oculta skeleton após 1 segundo (tempo para animação carregar)
+        setTimeout(() => {
+          setAnimationLoaded(true);
+        }, 1000);
+      } else {
+        // Se não é a primeira, mostra direto o modal de confirmação
+        setShowConfirmModal(true);
+      }
       return true;
     },
-    [addPlace]
+    [addPlace, places]
   );
+
+  // Handler para rolar até a listagem de cidades
+  const scrollToList = () => {
+    const listElement = document.getElementById('city-list-section');
+    if (listElement) {
+      listElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // Handler para adicionar lugar via clique no mapa
   const handleMapClick = useCallback(async (lat: number, lng: number) => {
@@ -60,11 +88,11 @@ export default function Home() {
       }
 
       const data = await response.json();
-      const name = data.address?.city || 
-                   data.address?.town || 
-                   data.address?.village || 
-                   data.address?.municipality ||
-                   `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      const name = data.address?.city ||
+        data.address?.town ||
+        data.address?.village ||
+        data.address?.municipality ||
+        `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
       const country = data.address?.country || undefined;
 
       const placeData = {
@@ -79,6 +107,7 @@ export default function Home() {
         longitude: lng,
       };
 
+      const isFirstPlace = places.length === 0;
       const addedPlace = addPlace(placeData);
 
       if (!addedPlace) {
@@ -87,12 +116,23 @@ export default function Home() {
       }
 
       setError(null);
-      // Show confirmation modal
       setRecentlyAddedPlace(addedPlace);
-      setShowConfirmModal(true);
+
+      // Se é a primeira cidade, mostra animação primeiro
+      if (isFirstPlace) {
+        setAnimationLoaded(false);
+        setShowAnimationModal(true);
+        // Oculta skeleton após 1 segundo (tempo para animação carregar)
+        setTimeout(() => {
+          setAnimationLoaded(true);
+        }, 1000);
+      } else {
+        // Se não é a primeira, mostra direto o modal de confirmação
+        setShowConfirmModal(true);
+      }
     } catch (err) {
-      const errorMessage = err instanceof Error 
-        ? err.message 
+      const errorMessage = err instanceof Error
+        ? err.message
         : 'Erro ao adicionar local. Tente novamente.';
       setError(errorMessage);
     }
@@ -143,7 +183,7 @@ export default function Home() {
           <p className="text-sm text-gray-500 mt-2 text-center">
             Clique no mapa para adicionar um local diretamente
           </p>
-          
+
           {/* Botões de ação */}
           <div className="flex justify-center gap-4 mt-4">
             <button
@@ -168,8 +208,26 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Botão flutuante para rolar até a lista (apenas mobile) */}
+        <button
+          onClick={scrollToList}
+          className="lg:hidden fixed bottom-6 right-6 bg-orange text-white p-4 rounded-full shadow-lg hover:opacity-90 transition-all z-50 flex items-center justify-center"
+          aria-label="Ver lista de cidades"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
         {/* Lista de cidades e Estatísticas lado a lado */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto items-start">
+        <div id="city-list-section" className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto items-start">
           {/* Lista de cidades */}
           <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm min-h-56">
             <CityList places={places} onRemovePlace={removePlace} onReorderPlaces={reorderPlaces} />
@@ -200,6 +258,49 @@ export default function Home() {
             </a>
           </p>
         </footer>
+
+        {/* Modal de Animação (primeira cidade) */}
+        <Modal
+          isOpen={showAnimationModal}
+          title=""
+          message={
+            <div className="flex flex-col items-center justify-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+                Parabéns, você visitou seu primeiro país!
+              </h2>
+              <div className="w-96 h-96 relative flex items-center justify-center">
+                {/* Loading placeholder - aparece até animação carregar */}
+                {!animationLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+                    <div className="animate-pulse flex flex-col items-center gap-4">
+                      <div className="w-32 h-32 bg-green/20 rounded-full"></div>
+                      <div className="w-40 h-3 bg-green/10 rounded"></div>
+                      <div className="w-32 h-3 bg-green/10 rounded"></div>
+                    </div>
+                  </div>
+                )}
+                {/* Animação - aparece quando skeleton desaparece */}
+                <div className={`w-full h-full transition-opacity duration-900 ${!animationLoaded ? 'opacity-0' : 'opacity-100'}`}>
+                  <DotLottieReact
+                    src="https://lottie.host/8b6bf159-4e04-4a2a-a3ad-b09b2e769ce5/nwNvN6XRQl.lottie"
+                    loop={false}
+                    autoplay
+                    speed={0.7}
+                  />
+                </div>
+              </div>
+            </div>
+          }
+          confirmText="OK"
+          cancelText=""
+          type="success"
+          onConfirm={() => {
+            setShowAnimationModal(false);
+            setAnimationLoaded(false); // Reset para próxima vez
+            setShowConfirmModal(true);
+          }}
+          onCancel={() => {}}
+        />
 
         {/* Modal de Salvar */}
         <Modal

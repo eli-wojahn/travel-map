@@ -154,6 +154,7 @@ const COUNTRY_ALIASES: Record<string, string> = {
   'tailândia': 'thailand',
   'timor-leste': 'east timor',
   'turcomenistão': 'turkmenistan',
+  'turquemenistão': 'turkmenistan',
   'emirados árabes': 'united arab emirates',
   'uzbequistão': 'uzbekistan',
   'vietnam': 'vietnam',

@@ -27,6 +27,7 @@ const countryFlags: Record<string, string> = {
   'China': '🇨🇳',
   'Índia': '🇮🇳',
   'Coreia do Sul': '🇰🇷',
+  'Coreia do Norte': '🇰🇵',
   'Tailândia': '🇹🇭',
   'Vietnã': '🇻🇳',
   'Indonésia': '🇮🇩',
@@ -70,6 +71,7 @@ const countryFlags: Record<string, string> = {
   'África do Sul': '🇿🇦',
   'Marrocos': '🇲🇦',
   'Tunísia': '🇹🇳',
+  'Turquemenistão': '🇹🇲',
   'Argélia': '🇩🇿',
   'Quênia': '🇰🇪',
   'Etiópia': '🇪🇹',
@@ -128,6 +130,11 @@ const countryFlags: Record<string, string> = {
   'Groenlândia': '🇬🇱',
   'Canadá': '🇨🇦',
   'Tchéquia': '🇨🇿',
+  'Polónia': '🇵🇱',
+  'Suriname': '🇸🇷',
+  'Guiana': '🇬🇾',
+  'Palestina': '🇵🇸',  
+  'Territórios Palestinianos': '🇵🇸',
   
   // Países em inglês (fallback)
   'Brazil': '🇧🇷',
