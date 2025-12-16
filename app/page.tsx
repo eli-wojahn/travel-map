@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { usePlaces } from '@/hooks/usePlaces';
 import CityInput from '@/components/CityInput';
@@ -35,8 +35,20 @@ export default function Home() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showAnimationModal, setShowAnimationModal] = useState(false);
-  const [animationLoaded, setAnimationLoaded] = useState(false);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
+
+  // Pré-carrega a animação em background
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = '/celebration-animation.json';
+    document.head.appendChild(link);
+    return () => {
+      if (document.head.contains(link)) {
+        document.head.removeChild(link);
+      }
+    };
+  }, []);
 
   // Handler para adicionar lugar via input
   const handleAddPlace = useCallback(
@@ -52,12 +64,7 @@ export default function Home() {
 
       // Se é a primeira cidade, mostra animação primeiro
       if (isFirstPlace) {
-        setAnimationLoaded(false);
         setShowAnimationModal(true);
-        // Oculta skeleton após 1 segundo (tempo para animação carregar)
-        setTimeout(() => {
-          setAnimationLoaded(true);
-        }, 1000);
       } else {
         // Se não é a primeira, mostra direto o modal de confirmação
         setShowConfirmModal(true);
@@ -120,12 +127,7 @@ export default function Home() {
 
       // Se é a primeira cidade, mostra animação primeiro
       if (isFirstPlace) {
-        setAnimationLoaded(false);
         setShowAnimationModal(true);
-        // Oculta skeleton após 1 segundo (tempo para animação carregar)
-        setTimeout(() => {
-          setAnimationLoaded(true);
-        }, 1000);
       } else {
         // Se não é a primeira, mostra direto o modal de confirmação
         setShowConfirmModal(true);
@@ -268,26 +270,13 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
                 Parabéns, você visitou seu primeiro país!
               </h2>
-              <div className="w-96 h-96 relative flex items-center justify-center">
-                {/* Loading placeholder - aparece até animação carregar */}
-                {!animationLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
-                    <div className="animate-pulse flex flex-col items-center gap-4">
-                      <div className="w-32 h-32 bg-green/20 rounded-full"></div>
-                      <div className="w-40 h-3 bg-green/10 rounded"></div>
-                      <div className="w-32 h-3 bg-green/10 rounded"></div>
-                    </div>
-                  </div>
-                )}
-                {/* Animação - aparece quando skeleton desaparece */}
-                <div className={`w-full h-full transition-opacity duration-1500 ${!animationLoaded ? 'opacity-0' : 'opacity-100'}`}>
-                  <DotLottieReact
-                    src="https://lottie.host/8b6bf159-4e04-4a2a-a3ad-b09b2e769ce5/nwNvN6XRQl.lottie"
-                    loop={false}
-                    autoplay
-                    speed={0.7}
-                  />
-                </div>
+              <div className="w-96 h-96 flex items-center justify-center">
+                <DotLottieReact
+                  src="/celebration-animation.json"
+                  autoplay={true}
+                  loop={false}
+                  speed={0.7}
+                />
               </div>
             </div>
           }
@@ -296,7 +285,6 @@ export default function Home() {
           type="success"
           onConfirm={() => {
             setShowAnimationModal(false);
-            setAnimationLoaded(false); // Reset para próxima vez
             setShowConfirmModal(true);
           }}
           onCancel={() => {}}
