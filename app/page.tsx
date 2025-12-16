@@ -280,7 +280,7 @@ export default function Home() {
                   </div>
                 )}
                 {/* Animação - aparece quando skeleton desaparece */}
-                <div className={`w-full h-full transition-opacity duration-900 ${!animationLoaded ? 'opacity-0' : 'opacity-100'}`}>
+                <div className={`w-full h-full transition-opacity duration-1500 ${!animationLoaded ? 'opacity-0' : 'opacity-100'}`}>
                   <DotLottieReact
                     src="https://lottie.host/8b6bf159-4e04-4a2a-a3ad-b09b2e769ce5/nwNvN6XRQl.lottie"
                     loop={false}
