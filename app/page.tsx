@@ -62,11 +62,14 @@ export default function Home() {
       setError(null);
       setRecentlyAddedPlace(addedPlace);
 
-      // Se é a primeira cidade, mostra animação primeiro
-      if (isFirstPlace) {
+      // Verifica se é coordenada (não é cidade)
+      const isCoordinate = addedPlace.name.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/);
+
+      // Se é a primeira cidade E é uma cidade real (não coordenada), mostra animação primeiro
+      if (isFirstPlace && !isCoordinate) {
         setShowAnimationModal(true);
       } else {
-        // Se não é a primeira, mostra direto o modal de confirmação
+        // Se não é a primeira, ou é coordenada, mostra direto o modal de confirmação
         setShowConfirmModal(true);
       }
       return true;
@@ -125,11 +128,14 @@ export default function Home() {
       setError(null);
       setRecentlyAddedPlace(addedPlace);
 
-      // Se é a primeira cidade, mostra animação primeiro
-      if (isFirstPlace) {
+      // Verifica se é coordenada (não é cidade)
+      const isCoordinate = addedPlace.name.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/);
+
+      // Se é a primeira cidade E é uma cidade real (não coordenada), mostra animação primeiro
+      if (isFirstPlace && !isCoordinate) {
         setShowAnimationModal(true);
       } else {
-        // Se não é a primeira, mostra direto o modal de confirmação
+        // Se não é a primeira, ou é coordenada, mostra direto o modal de confirmação
         setShowConfirmModal(true);
       }
     } catch (err) {
