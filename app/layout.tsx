@@ -5,6 +5,9 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Lugares do Mundo - Mapa de Cidades Visitadas',
   description: 'Marque e visualize todos os lugares que você já visitou no mundo',
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({

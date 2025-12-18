@@ -13,6 +13,7 @@ interface ModalProps {
   type?: 'info' | 'warning' | 'success';
   children?: ReactNode;
   hideButtons?: boolean;
+  videoSrc?: string;
 }
 
 /**
@@ -29,6 +30,7 @@ export default function Modal({
   type = 'info',
   children,
   hideButtons = false,
+  videoSrc,
 }: ModalProps) {
   if (!isOpen) return null;
 
@@ -57,24 +59,38 @@ export default function Modal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 animate-in fade-in zoom-in duration-200">
-        {/* Ícone */}
+        {/* Ícone ou Vídeo */}
         {title && (
-          <div className={`${colors.icon} rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4`}>
-            {type === 'warning' && (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 4v2" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-              </svg>
-            )}
-            {type === 'success' && (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-            {type === 'info' && (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          <div className="flex items-center justify-center mx-auto mb-4">
+            {videoSrc ? (
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-24 h-24 object-contain"
+              >
+                <source src={videoSrc} type="video/mp4" />
+              </video>
+            ) : (
+              <div className={`${colors.icon} rounded-full w-12 h-12 flex items-center justify-center`}>
+                {type === 'warning' && (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 4v2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                  </svg>
+                )}
+                {type === 'success' && (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {type === 'info' && (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </div>
             )}
           </div>
         )}

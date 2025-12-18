@@ -304,6 +304,7 @@ export default function Home() {
           confirmText="Entendi"
           cancelText="Fechar"
           type="info"
+          videoSrc="/save-map.mp4"
           onConfirm={() => setShowSaveModal(false)}
           onCancel={() => setShowSaveModal(false)}
         />
@@ -316,6 +317,7 @@ export default function Home() {
           confirmText="Limpar"
           cancelText="Cancelar"
           type="warning"
+          videoSrc="/trash-bin.mp4"
           onConfirm={() => {
             clearPlaces();
             setShowClearModal(false);
@@ -328,6 +330,7 @@ export default function Home() {
           <Modal
             isOpen={showConfirmModal}
             title="Cidade Adicionada!"
+            videoSrc="/city-added.mp4"
             message={
               <div className="space-y-2">
                 {/* Detecta se é apenas coordenada (nome contém vírgula e números) */}
