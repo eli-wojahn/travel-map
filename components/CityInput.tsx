@@ -5,7 +5,7 @@ import { geocodeCity } from '@/lib/geocoding';
 import { Place } from '@/types';
 
 interface CityInputProps {
-  onAddPlace: (place: Omit<Place, 'id' | 'createdAt'>) => boolean;
+  onAddPlace: (place: Omit<Place, 'id' | 'createdAt'>) => Promise<boolean> | boolean;
   onError?: (error: string) => void;
 }
 
@@ -35,7 +35,7 @@ export default function CityInput({ onAddPlace, onError }: CityInputProps) {
       const geocodeResult = await geocodeCity(cityName.trim());
       
       // Adiciona o lugar usando o callback
-      const success = onAddPlace({
+      const success = await onAddPlace({
         name: geocodeResult.name,
         state: geocodeResult.state,
         country: geocodeResult.country,
