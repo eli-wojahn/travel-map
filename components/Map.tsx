@@ -85,7 +85,7 @@ export default function Map({ places, onMapClick }: MapProps) {
   // Não renderiza até estar montado no cliente
   if (!isMounted) {
     return (
-      <div className="w-full h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
+      <div className="w-full h-[400px] sm:h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
         <p className="text-gray-500">Carregando mapa...</p>
       </div>
     );
@@ -93,15 +93,15 @@ export default function Map({ places, onMapClick }: MapProps) {
 
   return (
     <div 
-      className="w-full rounded-lg overflow-hidden border border-gray-300" 
-      style={{ position: 'relative', height: '600px', width: '100%' }}
+      className="w-full rounded-lg overflow-hidden border border-gray-300 h-[400px] sm:h-[600px]" 
+      style={{ position: 'relative', width: '100%' }}
     >
       <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
         minZoom={2}
         worldCopyJump={true}
-        style={{ height: '600px', width: '100%' }}
+        className="h-full w-full"
         scrollWheelZoom={true}
       >
         {/* Camada de tiles do OpenStreetMap */}

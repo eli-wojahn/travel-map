@@ -195,10 +195,48 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl">
         {/* Cabeçalho com info do usuário */}
-        <header className="mb-8">
-          <div className="flex items-center justify-between">
+        <header className="mb-6 sm:mb-8">
+          {/* Mobile: Layout vertical */}
+          <div className="lg:hidden">
+            <div className="text-center mb-4">
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                Travel Map
+              </h1>
+              <p className="text-sm text-gray-600">
+                Marque e visualize todos os lugares que você já visitou
+              </p>
+            </div>
+            {user && (
+              <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm border border-gray-200">
+                <div className="flex items-center gap-3">
+                  {user.user_metadata?.avatar_url && (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="Avatar"
+                      className="w-10 h-10 rounded-full"
+                    />
+                  )}
+                  <div className="text-left">
+                    <p className="text-xs text-gray-600">Olá,</p>
+                    <p className="font-medium text-sm text-gray-900 truncate max-w-[150px]">
+                      {user.user_metadata?.full_name || user.email}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Sair
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop: Layout horizontal original */}
+          <div className="hidden lg:flex items-center justify-between">
             <div className="text-center flex-1">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
                 Travel Map
@@ -250,21 +288,21 @@ export default function DashboardPage() {
         {/* Mapa */}
         <div className="mb-6 max-w-6xl mx-auto">
           {isLoading ? (
-            <div className="w-full h-full min-h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
+            <div className="w-full h-full min-h-[400px] sm:min-h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
               <p className="text-gray-500">Carregando lugares...</p>
             </div>
           ) : (
             <Map places={places} onMapClick={handleMapClick} />
           )}
-          <p className="text-sm text-gray-500 mt-2 text-center">
+          <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center px-2">
             Clique no mapa para adicionar um local diretamente
           </p>
 
           {/* Botões de ação */}
-          <div className="flex justify-center gap-4 mt-4">
+          <div className="flex justify-center gap-3 sm:gap-4 mt-4">
             <button
               onClick={() => setShowSaveModal(true)}
-              className="px-6 py-2 bg-orange text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
+              className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-orange text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
             >
               Salvar
             </button>
@@ -277,7 +315,7 @@ export default function DashboardPage() {
                 }
                 setShowClearModal(true);
               }}
-              className="px-6 py-2 bg-green text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
+              className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-green text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
             >
               Limpar
             </button>

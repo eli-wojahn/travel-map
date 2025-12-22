@@ -80,14 +80,14 @@ export default function CityInput({ onAddPlace, onError }: CityInputProps) {
         value={cityName}
         onChange={(e) => setCityName(e.target.value)}
         placeholder="Digite o nome da cidade..."
-        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         disabled={isLoading}
         autoFocus
       />
       <button
         type="submit"
         disabled={isLoading || !cityName.trim()}
-        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
         onMouseDown={(e) => {
           // Previne que o botão roube o foco do input
           e.preventDefault();

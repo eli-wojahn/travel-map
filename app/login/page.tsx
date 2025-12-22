@@ -29,10 +29,16 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
 
+      // Detecta a URL atual (localhost ou produção)
+      const currentUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const redirectUrl = `${currentUrl}/auth/callback`;
+
+      console.log('Redirect URL:', redirectUrl); // Debug
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -56,7 +62,7 @@ export default function LoginPage() {
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            🌍 Travel Map
+            🌍 My Travel Map
           </h1>
           <p className="text-gray-600">
             Marque todos os lugares que você já visitou
