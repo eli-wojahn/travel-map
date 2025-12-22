@@ -47,14 +47,14 @@ export default function DashboardPage() {
   // Verifica autenticação
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
+      if (!session?.user) {
         router.push('/login');
         return;
       }
       
-      setUser(user);
+      setUser(session.user);
       setIsLoadingAuth(false);
     };
 

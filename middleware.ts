@@ -59,7 +59,21 @@ export async function middleware(request: NextRequest) {
   );
 
   // Refresh session if expired - required for Server Components
-  await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+
+  // Protege rotas que requerem autenticação
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/dashboard');
+  const isLoginRoute = request.nextUrl.pathname.startsWith('/login');
+
+  if (isAuthRoute && !session) {
+    // Redireciona para login se não autenticado
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  if (isLoginRoute && session) {
+    // Redireciona para dashboard se já autenticado
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
 
   return response;
 }

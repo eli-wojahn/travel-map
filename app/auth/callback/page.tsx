@@ -24,11 +24,11 @@ export default function AuthCallbackPage() {
 
         if (accessToken) {
           // Verifica se o usuário está autenticado
-          const { data: { user }, error } = await supabase.auth.getUser();
+          const { data: { session }, error } = await supabase.auth.getSession();
 
           if (error) throw error;
 
-          if (user) {
+          if (session?.user) {
             setStatus('success');
             setMessage('Login realizado com sucesso! Redirecionando...');
             
@@ -37,12 +37,12 @@ export default function AuthCallbackPage() {
               router.push('/dashboard');
             }, 1000);
           } else {
-            throw new Error('Usuário não encontrado');
+            throw new Error('Sessão não encontrada');
           }
         } else {
           // Se não há token, verifica se já está autenticado
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
             router.push('/dashboard');
           } else {
             throw new Error('Token de acesso não encontrado');
