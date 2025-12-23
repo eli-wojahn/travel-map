@@ -298,20 +298,20 @@ export default function DashboardPage() {
             
             {/* Modo Guest - Botão de Salvar */}
             {!user && isGuestMode && (
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-3 mb-4">
+              <div className="bg-orange/10 border-2 border-orange/30 rounded-lg p-3 mb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-xs font-medium text-blue-900 mb-1">
+                    <p className="text-xs font-medium text-orange/90 mb-1">
                       🗺️ Modo sem login
                     </p>
-                    <p className="text-xs text-blue-700">
+                    <p className="text-xs text-gray-600">
                       Faça login para sincronizar
                     </p>
                   </div>
                   <button
                     onClick={handleSaveToCloud}
                     disabled={places.length === 0}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    className="px-4 py-2 bg-green text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
                     {places.length > 0 ? '💾 Salvar' : 'Login'}
                   </button>
@@ -360,20 +360,20 @@ export default function DashboardPage() {
             
             {/* Modo Guest - Botão de Salvar (Desktop) */}
             {!user && isGuestMode && (
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4 ml-4">
+              <div className="bg-orange/10 border-2 border-orange/30 rounded-lg p-4 ml-4">
                 <div className="flex items-center gap-4">
                   <div>
-                    <p className="text-sm font-medium text-blue-900 mb-1">
+                    <p className="text-sm font-medium text-orange/90 mb-1">
                       🗺️ Modo sem login
                     </p>
-                    <p className="text-xs text-blue-700">
+                    <p className="text-xs text-gray-600">
                       Seus dados estão salvos apenas neste dispositivo
                     </p>
                   </div>
                   <button
                     onClick={handleSaveToCloud}
                     disabled={places.length === 0}
-                    className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    className="px-6 py-2.5 bg-green text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
                     {places.length > 0 ? '💾 Fazer Login e Salvar' : 'Fazer Login'}
                   </button>
