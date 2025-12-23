@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import { usePlaces } from '@/hooks/usePlaces';
+import { loadPlaces } from '@/lib/storage';
 import CityInput from '@/components/CityInput';
 import CityList from '@/components/CityList';
 import Statistics from '@/components/Statistics';
@@ -36,36 +37,41 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   
-  const { places, isLoading, addPlace, removePlace, clearPlaces, reorderPlaces } = usePlaces();
+  const { places, isLoading, isGuestMode, addPlace, removePlace, clearPlaces, reorderPlaces } = usePlaces();
   const [error, setError] = useState<string | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showAnimationModal, setShowAnimationModal] = useState(false);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
+  const [isMigrating, setIsMigrating] = useState(false);
 
-  // Verifica autenticação
+  // Verifica autenticação (mas não redireciona mais)
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session?.user) {
-        router.push('/login');
-        return;
+      if (session?.user) {
+        setUser(session.user);
+        // Remove marca de modo guest se usuário está logado
+        localStorage.removeItem('guest-mode');
       }
       
-      setUser(session.user);
       setIsLoadingAuth(false);
     };
 
     checkAuth();
 
     // Listener para mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
-        router.push('/login');
-      } else if (session?.user) {
+        setUser(null);
+        localStorage.setItem('guest-mode', 'true');
+      } else if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
+        localStorage.removeItem('guest-mode');
+        // Migra dados do localStorage se houver
+        await migrateGuestData();
       }
     });
 
@@ -179,6 +185,72 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    // Não redireciona mais, apenas marca como guest mode
+    localStorage.setItem('guest-mode', 'true');
+    window.location.reload(); // Recarrega para atualizar o estado
+  };
+
+  // Função para migrar dados do localStorage para o Supabase
+  const migrateGuestData = async () => {
+    try {
+      setIsMigrating(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Carrega lugares do localStorage
+      const localPlaces = loadPlaces();
+      
+      if (localPlaces.length === 0) {
+        setIsMigrating(false);
+        return;
+      }
+
+      console.log('🔄 Migrando', localPlaces.length, 'lugares do localStorage para Supabase...');
+      
+      // Prepara lugares para inserção
+      const placesToInsert = localPlaces.map((place) => ({
+        user_id: user.id,
+        name: place.name,
+        state: place.state || null,
+        country: place.country || null,
+        latitude: place.latitude,
+        longitude: place.longitude,
+        created_at: place.createdAt,
+      }));
+
+      // Insere no Supabase
+      const { data: insertedPlaces, error: insertError } = await supabase
+        .from('places')
+        .insert(placesToInsert as any)
+        .select();
+
+      if (!insertError && insertedPlaces) {
+        console.log('✅ Migração concluída!', insertedPlaces.length, 'lugares salvos');
+        
+        // Limpa localStorage após migração bem-sucedida
+        localStorage.removeItem('lugares-do-mundo-places');
+        console.log('🗑️ localStorage limpo');
+        
+        // Recarrega a página para atualizar com dados do Supabase
+        window.location.reload();
+      } else {
+        console.error('Erro na migração:', insertError);
+      }
+      
+      setIsMigrating(false);
+    } catch (err) {
+      console.error('Erro ao migrar dados:', err);
+      setIsMigrating(false);
+    }
+  };
+
+  // Handler para o botão de salvar/login
+  const handleSaveToCloud = () => {
+    if (places.length === 0) {
+      setError('Adicione alguns lugares antes de fazer login!');
+      return;
+    }
     router.push('/login');
   };
 
@@ -208,6 +280,31 @@ export default function DashboardPage() {
                 Marque e visualize todos os lugares que você já visitou
               </p>
             </div>
+            
+            {/* Modo Guest - Botão de Salvar */}
+            {!user && isGuestMode && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-blue-900 mb-1">
+                      🗺️ Modo sem login
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      Faça login para sincronizar
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleSaveToCloud}
+                    disabled={places.length === 0}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    {places.length > 0 ? '💾 Salvar' : 'Login'}
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {/* Modo Autenticado - Info do usuário */}
             {user && (
               <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm border border-gray-200">
                 <div className="flex items-center gap-3">
@@ -246,6 +343,30 @@ export default function DashboardPage() {
               </p>
             </div>
             
+            {/* Modo Guest - Botão de Salvar (Desktop) */}
+            {!user && isGuestMode && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4 ml-4">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-blue-900 mb-1">
+                      🗺️ Modo sem login
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      Seus dados estão salvos apenas neste dispositivo
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleSaveToCloud}
+                    disabled={places.length === 0}
+                    className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    {places.length > 0 ? '💾 Fazer Login e Salvar' : 'Fazer Login'}
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {/* Modo Autenticado - Info do usuário (Desktop) */}
             {user && (
               <div className="flex items-center gap-4">
                 <div className="text-right">
@@ -371,6 +492,28 @@ export default function DashboardPage() {
         </footer>
 
         {/* Modais */}
+        
+        {/* Modal de Migração */}
+        <Modal
+          isOpen={isMigrating}
+          title="Salvando seus dados..."
+          message={
+            <div className="flex flex-col items-center justify-center py-4">
+              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4" />
+              <p className="text-gray-600 text-center">
+                Estamos sincronizando seus lugares para a nuvem.
+                <br />
+                Aguarde um momento...
+              </p>
+            </div>
+          }
+          confirmText=""
+          cancelText=""
+          type="info"
+          onConfirm={() => {}}
+          onCancel={() => {}}
+        />
+        
         <Modal
           isOpen={showAnimationModal}
           title=""

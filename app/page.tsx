@@ -2,28 +2,19 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase-browser';
 
 /**
- * Página inicial - redireciona para login ou dashboard
+ * Página inicial - redireciona direto para o app
+ * Usuário pode usar sem login (localStorage) ou fazer login (Supabase)
  */
 export default function Home() {
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        router.push('/dashboard');
-      } else {
-        router.push('/login');
-      }
-    };
-
-    checkAuth();
-  }, [router, supabase]);
+    // Redireciona direto para o dashboard
+    // O dashboard vai permitir uso sem login
+    router.push('/dashboard');
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">

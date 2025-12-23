@@ -65,10 +65,8 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = request.nextUrl.pathname.startsWith('/dashboard');
   const isLoginRoute = request.nextUrl.pathname.startsWith('/login');
 
-  if (isAuthRoute && !session) {
-    // Redireciona para login se não autenticado
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
+  // Dashboard agora permite acesso sem autenticação (modo guest)
+  // Não redireciona mais para login
 
   if (isLoginRoute && session) {
     // Redireciona para dashboard se já autenticado

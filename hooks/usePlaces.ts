@@ -3,27 +3,37 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase-browser';
 import { Place } from '@/types';
-import { loadPlaces } from '@/lib/storage';
+import { loadPlaces, savePlaces, generatePlaceId } from '@/lib/storage';
 
 /**
  * Hook customizado para gerenciar a lista de lugares visitados
- * Agora sincroniza com Supabase e suporta realtime updates
+ * Suporta modo guest (localStorage) e modo autenticado (Supabase)
  */
 export function usePlaces() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGuestMode, setIsGuestMode] = useState(false);
   const supabase = createClient();
 
-  // Carrega lugares do Supabase e migra localStorage se necessário
+  // Carrega lugares do Supabase OU localStorage dependendo do modo
   useEffect(() => {
     const loadPlacesFromSupabase = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         
+        // MODO GUEST: Se não há usuário autenticado, usa localStorage
         if (!user) {
+          console.log('🗺️ Modo Guest: usando localStorage');
+          setIsGuestMode(true);
+          const localPlaces = loadPlaces();
+          setPlaces(localPlaces);
           setIsLoading(false);
           return;
         }
+
+        // MODO AUTENTICADO: usa Supabase
+        console.log('🔐 Modo Autenticado: usando Supabase');
+        setIsGuestMode(false);
 
         // Carrega lugares do Supabase
         const { data: supabasePlaces, error } = await supabase
@@ -106,10 +116,10 @@ export function usePlaces() {
 
     loadPlacesFromSupabase();
 
-    // Configura realtime subscription para sincronização automática
+    // Configura realtime subscription apenas em modo autenticado
     const setupRealtimeSubscription = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) return; // Não configura realtime em modo guest
 
       const channel = supabase
         .channel('places-changes')
@@ -179,19 +189,14 @@ export function usePlaces() {
   }, [supabase]);
 
   /**
-   * Adiciona um novo lugar à lista e salva no Supabase
+   * Adiciona um novo lugar à lista
+   * Modo Guest: salva no localStorage
+   * Modo Autenticado: salva no Supabase
    */
   const addPlace = useCallback(
     async (place: Omit<Place, 'id' | 'createdAt'>): Promise<Place | null> => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          console.error('Usuário não autenticado');
-          return null;
-        }
-
-        // Verifica duplicatas localmente primeiro (mais rápido)
+        // Verifica duplicatas localmente primeiro
         const isDuplicate = places.some((existing) => {
           const sameName =
             existing.name.trim().toLowerCase() === place.name.trim().toLowerCase();
@@ -205,6 +210,34 @@ export function usePlaces() {
         });
 
         if (isDuplicate) {
+          return null;
+        }
+
+        // MODO GUEST: Salva no localStorage
+        if (isGuestMode) {
+          const newPlace: Place = {
+            id: generatePlaceId(),
+            name: place.name,
+            state: place.state,
+            country: place.country,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            createdAt: new Date().toISOString(),
+          };
+
+          const updatedPlaces = [newPlace, ...places];
+          setPlaces(updatedPlaces);
+          savePlaces(updatedPlaces);
+          
+          console.log('💾 Lugar salvo no localStorage (modo guest)');
+          return newPlace;
+        }
+
+        // MODO AUTENTICADO: Salva no Supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.error('Usuário não autenticado');
           return null;
         }
 
@@ -243,21 +276,34 @@ export function usePlaces() {
         // Atualiza estado local (o realtime também vai atualizar, mas isso é mais rápido)
         setPlaces((prev) => [newPlace, ...prev]);
 
+        console.log('☁️ Lugar salvo no Supabase');
         return newPlace;
       } catch (err) {
         console.error('Erro ao adicionar lugar:', err);
         return null;
       }
     },
-    [supabase, places]
+    [supabase, places, isGuestMode]
   );
 
   /**
-   * Remove um lugar da lista e do Supabase
+   * Remove um lugar da lista
+   * Modo Guest: remove do localStorage
+   * Modo Autenticado: remove do Supabase
    */
   const removePlace = useCallback(
     async (id: string) => {
       try {
+        // MODO GUEST: Remove do localStorage
+        if (isGuestMode) {
+          const updatedPlaces = places.filter((place) => place.id !== id);
+          setPlaces(updatedPlaces);
+          savePlaces(updatedPlaces);
+          console.log('💾 Lugar removido do localStorage (modo guest)');
+          return;
+        }
+
+        // MODO AUTENTICADO: Remove do Supabase
         const { error } = await supabase.from('places').delete().eq('id', id);
 
         if (error) {
@@ -267,18 +313,30 @@ export function usePlaces() {
 
         // Atualiza estado local
         setPlaces((prev) => prev.filter((place) => place.id !== id));
+        console.log('☁️ Lugar removido do Supabase');
       } catch (err) {
         console.error('Erro ao remover lugar:', err);
       }
     },
-    [supabase]
+    [supabase, places, isGuestMode]
   );
 
   /**
-   * Limpa todos os lugares do usuário
+   * Limpa todos os lugares
+   * Modo Guest: limpa do localStorage
+   * Modo Autenticado: limpa do Supabase
    */
   const clearPlaces = useCallback(async () => {
     try {
+      // MODO GUEST: Limpa localStorage
+      if (isGuestMode) {
+        setPlaces([]);
+        savePlaces([]);
+        console.log('💾 Lugares limpos do localStorage (modo guest)');
+        return;
+      }
+
+      // MODO AUTENTICADO: Limpa Supabase
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) return;
@@ -294,27 +352,36 @@ export function usePlaces() {
       }
 
       setPlaces([]);
+      console.log('☁️ Lugares limpos do Supabase');
     } catch (err) {
       console.error('Erro ao limpar lugares:', err);
     }
-  }, [supabase]);
+  }, [supabase, isGuestMode]);
 
   /**
-   * Reordena os lugares (apenas local - não salva no Supabase)
-   * A ordem é determinada pela data de criação no Supabase
+   * Reordena os lugares
+   * Em ambos os modos apenas reordena localmente
+   * Modo Guest: salva nova ordem no localStorage
    */
   const reorderPlaces = useCallback((startIndex: number, endIndex: number) => {
     setPlaces((prev) => {
       const result = Array.from(prev);
       const [removed] = result.splice(startIndex, 1);
       result.splice(endIndex, 0, removed);
+      
+      // Se estiver em modo guest, salva no localStorage
+      if (isGuestMode) {
+        savePlaces(result);
+      }
+      
       return result;
     });
-  }, []);
+  }, [isGuestMode]);
 
   return {
     places,
     isLoading,
+    isGuestMode,
     addPlace,
     removePlace,
     clearPlaces,

@@ -16,13 +16,19 @@ export default function LoginPage() {
   // Verifica se já está autenticado
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         router.push('/dashboard');
       }
     };
     checkAuth();
   }, [router, supabase]);
+
+  const handleContinueWithoutLogin = () => {
+    // Marca no localStorage que está em modo guest
+    localStorage.setItem('guest-mode', 'true');
+    router.push('/dashboard');
+  };
 
   const handleGoogleLogin = async () => {
     try {
@@ -76,6 +82,25 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* Guest Mode Button */}
+        <button
+          onClick={handleContinueWithoutLogin}
+          className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg px-6 py-3 font-semibold hover:from-blue-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg mb-4"
+        >
+          <span>🗺️</span>
+          Continuar sem login
+        </button>
+
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">ou</span>
+          </div>
+        </div>
+
         {/* Google Login Button */}
         <button
           onClick={handleGoogleLogin}
@@ -112,10 +137,20 @@ export default function LoginPage() {
           )}
         </button>
 
+        {/* Info about guest mode */}
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800 mb-2">
+            <strong>🗺️ Modo sem login:</strong> Seus dados ficam salvos apenas neste dispositivo.
+          </p>
+          <p className="text-xs text-blue-700">
+            Faça login depois para sincronizar em todos os seus dispositivos!
+          </p>
+        </div>
+
         {/* Features */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-sm text-gray-600 mb-4 text-center">
-            Com sua conta você pode:
+            <strong>Benefícios de criar uma conta:</strong>
           </p>
           <ul className="space-y-2 text-sm text-gray-600">
             <li className="flex items-start gap-2">
