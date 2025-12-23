@@ -48,52 +48,8 @@ export function usePlaces() {
           return;
         }
 
-        // Se não há lugares no Supabase, verifica localStorage
-        if (!supabasePlaces || supabasePlaces.length === 0) {
-          const localPlaces = loadPlaces();
-          
-          if (localPlaces.length > 0) {
-            // Migra lugares do localStorage para o Supabase
-            console.log('🔄 Migrando', localPlaces.length, 'lugares do localStorage...');
-            
-            const placesToInsert = localPlaces.map((place) => ({
-              user_id: user.id,
-              name: place.name,
-              state: place.state || null,
-              country: place.country || null,
-              latitude: place.latitude,
-              longitude: place.longitude,
-              created_at: place.createdAt,
-            }));
-
-            const { data: insertedPlaces, error: insertError } = await supabase
-              .from('places')
-              .insert(placesToInsert as any)
-              .select();
-
-            if (!insertError && insertedPlaces) {
-              console.log('✅ Migração concluída!', insertedPlaces.length, 'lugares');
-              
-              // Converte para o formato Place
-              const migratedPlaces: Place[] = insertedPlaces.map((p: any) => ({
-                id: p.id,
-                name: p.name,
-                state: p.state || undefined,
-                country: p.country || undefined,
-                latitude: p.latitude,
-                longitude: p.longitude,
-                createdAt: p.created_at,
-              }));
-              
-              setPlaces(migratedPlaces);
-              
-              // Limpa localStorage após migração bem-sucedida
-              localStorage.removeItem('lugares-do-mundo-places');
-              console.log('🗑️ localStorage limpo');
-            }
-          }
-        } else {
-          // Converte dados do Supabase para o formato Place
+        // Converte dados do Supabase para o formato Place (se houver)
+        if (supabasePlaces && supabasePlaces.length > 0) {
           const formattedPlaces: Place[] = supabasePlaces.map((p: any) => ({
             id: p.id,
             name: p.name,
@@ -105,6 +61,9 @@ export function usePlaces() {
           }));
           
           setPlaces(formattedPlaces);
+        } else {
+          // Se não há lugares no Supabase, mantém array vazio
+          setPlaces([]);
         }
 
         setIsLoading(false);

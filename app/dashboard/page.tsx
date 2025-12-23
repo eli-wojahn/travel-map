@@ -55,6 +55,13 @@ export default function DashboardPage() {
         setUser(session.user);
         // Remove marca de modo guest se usuário está logado
         localStorage.removeItem('guest-mode');
+        
+        // Verifica se deve migrar dados (apenas se vem de callback de auth)
+        const shouldMigrate = sessionStorage.getItem('should-migrate-guest-data');
+        if (shouldMigrate === 'true') {
+          sessionStorage.removeItem('should-migrate-guest-data');
+          await migrateGuestData();
+        }
       }
       
       setIsLoadingAuth(false);
@@ -70,8 +77,8 @@ export default function DashboardPage() {
       } else if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
         localStorage.removeItem('guest-mode');
-        // Migra dados do localStorage se houver
-        await migrateGuestData();
+        // Marca que deve migrar dados na próxima verificação
+        sessionStorage.setItem('should-migrate-guest-data', 'true');
       }
     });
 
@@ -193,15 +200,19 @@ export default function DashboardPage() {
   // Função para migrar dados do localStorage para o Supabase
   const migrateGuestData = async () => {
     try {
-      setIsMigrating(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       // Carrega lugares do localStorage
       const localPlaces = loadPlaces();
       
+      // Se não há dados para migrar, não faz nada
       if (localPlaces.length === 0) {
+        console.log('📭 Nenhum dado para migrar');
+        return;
+      }
+
+      setIsMigrating(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         setIsMigrating(false);
         return;
       }
@@ -232,16 +243,20 @@ export default function DashboardPage() {
         localStorage.removeItem('lugares-do-mundo-places');
         console.log('🗑️ localStorage limpo');
         
-        // Recarrega a página para atualizar com dados do Supabase
-        window.location.reload();
+        // Aguarda 1 segundo para mostrar mensagem de sucesso
+        setTimeout(() => {
+          setIsMigrating(false);
+          // O usePlaces vai recarregar automaticamente via realtime
+        }, 1500);
       } else {
         console.error('Erro na migração:', insertError);
+        setIsMigrating(false);
+        setError('Erro ao salvar dados. Tente novamente.');
       }
-      
-      setIsMigrating(false);
     } catch (err) {
       console.error('Erro ao migrar dados:', err);
       setIsMigrating(false);
+      setError('Erro ao salvar dados. Tente novamente.');
     }
   };
 
