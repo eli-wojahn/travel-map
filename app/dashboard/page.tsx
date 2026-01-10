@@ -11,6 +11,7 @@ import CityList from '@/components/CityList';
 import Statistics from '@/components/Statistics';
 import WorldMapSimple from '@/components/WorldMapSimple';
 import Modal from '@/components/Modal';
+import ShareModal from '@/components/ShareModal';
 import { getCountryFlag } from '@/lib/countryFlags';
 import { Place } from '@/types';
 
@@ -43,6 +44,7 @@ export default function DashboardPage() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showAnimationModal, setShowAnimationModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
   const [isMigrating, setIsMigrating] = useState(false);
 
@@ -482,7 +484,7 @@ export default function DashboardPage() {
             <CityList places={places} onRemovePlace={removePlace} onReorderPlaces={reorderPlaces} />
           </div>
           <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm min-h-56">
-            <Statistics places={places} />
+            <Statistics places={places} onShareClick={() => setShowShareModal(true)} />
           </div>
         </div>
 
@@ -507,6 +509,13 @@ export default function DashboardPage() {
         </footer>
 
         {/* Modais */}
+        
+        {/* Modal de Compartilhamento */}
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          places={places}
+        />
         
         {/* Modal de Migração */}
         <Modal

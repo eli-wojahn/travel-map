@@ -7,13 +7,14 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 
 interface StatisticsProps {
   places: Place[];
+  onShareClick?: () => void;
 }
 
 /**
  * Componente que exibe estatísticas sobre os lugares visitados
  * Mostra total de cidades, países visitados e lista de países
  */
-export default function Statistics({ places }: StatisticsProps) {
+export default function Statistics({ places, onShareClick }: StatisticsProps) {
   const [openCountries, setOpenCountries] = useState(false);
   // Calcula estatísticas baseadas nos lugares
   const stats = useMemo(() => {
@@ -61,9 +62,21 @@ export default function Statistics({ places }: StatisticsProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <h3 className="font-semibold text-lg mb-4">
-        Estatísticas
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold text-lg">
+          Estatísticas
+        </h3>
+        {onShareClick && (
+          <button
+            onClick={onShareClick}
+            className="flex items-center gap-2 px-4 py-2 bg-orange hover:bg-orange-600 text-white rounded-lg transition-colors text-sm font-medium"
+            title="Compartilhar nas redes sociais"
+          >
+            <span>📤</span>
+            <span>Compartilhar</span>
+          </button>
+        )}
+      </div>
 
       {/* Cards de estatísticas principais */}
       <div className="grid grid-cols-2 gap-4 mb-4">
