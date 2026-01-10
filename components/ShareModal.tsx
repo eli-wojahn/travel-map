@@ -205,7 +205,7 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
           </div>
 
           <p className="text-xs text-gray-500 text-center mt-2">
-            💡 Dica: Use "Copiar" para colar diretamente no WhatsApp ou Instagram!
+            💡 Dica: Use &quot;Copiar&quot; para colar diretamente no WhatsApp ou Instagram!
           </p>
         </div>
       </div>
