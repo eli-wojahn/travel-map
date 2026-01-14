@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ShareCard from './ShareCard';
 import { Place } from '@/types';
 import { useShareImage } from '@/hooks/useShareImage';
@@ -12,11 +12,28 @@ interface ShareModalProps {
 }
 
 /**
+ * Detecta se o usuário está em um dispositivo móvel
+ */
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+};
+
+/**
  * Modal para compartilhar card com mapa e estatísticas
  */
 export default function ShareModal({ isOpen, onClose, places }: ShareModalProps) {
-  const [format, setFormat] = useState<'square' | 'landscape'>('square');
+  const [format, setFormat] = useState<'square' | 'portrait'>('square');
   const [showSuccess, setShowSuccess] = useState<string | null>(null);
+  
+  // Detecta automaticamente o formato baseado no dispositivo
+  useEffect(() => {
+    if (isMobileDevice()) {
+      setFormat('portrait');
+    } else {
+      setFormat('square');
+    }
+  }, []);
   
   const { 
     downloadImage, 
@@ -98,26 +115,26 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
               }`}
             >
               <div className="flex items-center justify-center gap-2">
-                <span>📱</span>
+                <span>�</span>
                 <div className="text-left">
                   <div className="text-sm">Quadrado (1:1)</div>
-                  <div className="text-xs opacity-75">Instagram, WhatsApp</div>
+                  <div className="text-xs opacity-75">Instagram Post, WhatsApp</div>
                 </div>
               </div>
             </button>
             <button
-              onClick={() => setFormat('landscape')}
+              onClick={() => setFormat('portrait')}
               className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
-                format === 'landscape'
+                format === 'portrait'
                   ? 'border-orange bg-orange/10 text-orange font-semibold'
                   : 'border-gray-200 hover:border-gray-300 text-gray-700'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
-                <span>🖥️</span>
+                <span>📱</span>
                 <div className="text-left">
-                  <div className="text-sm">Paisagem (16:9)</div>
-                  <div className="text-xs opacity-75">Facebook, Twitter</div>
+                  <div className="text-sm">Retrato (9:16)</div>
+                  <div className="text-xs opacity-75">Instagram/WhatsApp Stories</div>
                 </div>
               </div>
             </button>
@@ -129,21 +146,21 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
           <div className="text-sm font-medium text-gray-700 mb-1 px-1 flex items-center justify-between">
             <span>Preview da imagem:</span>
             <span className="text-xs text-gray-500">
-              {format === 'square' ? '1080x1080px' : '1200x675px'}
+              {format === 'square' ? '1080x1080px' : '1080x1920px'}
             </span>
           </div>
           
           {/* Preview visual - mostra o card real em miniatura */}
           <div className="bg-white rounded-lg border border-gray-300 flex items-center justify-center" style={{
-            height: format === 'square' ? '600px' : '440px',
+            height: format === 'square' ? '600px' : '720px',
             overflow: 'hidden',
           }}>
             <div 
               style={{
-                transform: format === 'square' ? 'scale(0.555)' : 'scale(0.65)',
+                transform: format === 'square' ? 'scale(0.555)' : 'scale(0.375)',
                 transformOrigin: 'center center',
-                width: format === 'square' ? '1080px' : '1200px',
-                height: format === 'square' ? '1080px' : '675px',
+                width: format === 'square' ? '1080px' : '1080px',
+                height: format === 'square' ? '1080px' : '1920px',
               }}
             >
               <ShareCard places={places} format={format} />
@@ -211,13 +228,14 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
       </div>
       </div>
 
-      {/* Elemento invisível para geração da imagem - posicionado fora da tela */}
+      {/* Elemento invisível para geração da imagem - renderizado mas não visível */}
       <div 
         style={{ 
           position: 'fixed',
-          left: '-10000px',
+          left: '0',
           top: '0',
-          visibility: 'hidden',
+          opacity: 0,
+          zIndex: -9999,
           pointerEvents: 'none',
         }}
       >

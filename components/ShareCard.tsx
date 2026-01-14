@@ -9,7 +9,7 @@ const GEO_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/maste
 
 interface ShareCardProps {
   places: Place[];
-  format?: 'square' | 'landscape'; // 1:1 Instagram ou 16:9 Facebook/Twitter
+  format?: 'square' | 'portrait'; // 1:1 Instagram/WhatsApp ou 9:16 Stories
 }
 
 /**
@@ -52,11 +52,11 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
 
   const containerClass = format === 'square' 
     ? 'w-[1080px] h-[1080px]' 
-    : 'w-[1200px] h-[675px]';
+    : 'w-[1080px] h-[1920px]';
 
   const heightConfig = format === 'square' 
     ? { header: 160, map: 640, stats: 200, footer: 80 }
-    : { header: 120, map: 380, stats: 130, footer: 45 };
+    : { header: 240, map: 1100, stats: 460, footer: 120 };
 
   return (
     <div 
@@ -77,12 +77,12 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
       {/* Header */}
       <div className="relative z-10 px-16 flex flex-col justify-center">
         <div className="flex items-center gap-4 mb-1">
-          <span className={format === 'square' ? 'text-6xl' : 'text-5xl'} style={{ flexShrink: 0 }}>🌍</span>
-          <h1 className={format === 'square' ? 'text-5xl font-bold text-gray-800 leading-tight' : 'text-4xl font-bold text-gray-800 leading-tight'}>
+          <span className={format === 'square' ? 'text-6xl' : 'text-7xl'} style={{ flexShrink: 0 }}>🌍</span>
+          <h1 className={format === 'square' ? 'text-5xl font-bold text-gray-800 leading-tight' : 'text-6xl font-bold text-gray-800 leading-tight'}>
             My Travel map
           </h1>
         </div>
-        <p className={format === 'square' ? 'text-2xl text-gray-600 ml-20' : 'text-xl text-gray-600 ml-16'}>
+        <p className={format === 'square' ? 'text-2xl text-gray-600 ml-20' : 'text-3xl text-gray-600 ml-24'}>
           Mapeando minhas aventuras pelo planeta
         </p>
       </div>
@@ -143,48 +143,48 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
 
       {/* Estatísticas */}
       <div className="relative z-10 px-16 flex items-center">
-        <div className="bg-white rounded-3xl shadow-2xl border-4 border-gray-100 w-full" style={{ padding: format === 'square' ? '32px' : '20px' }}>
+        <div className="bg-white rounded-3xl shadow-2xl border-4 border-gray-100 w-full" style={{ padding: format === 'square' ? '32px' : '48px' }}>
           <div className="flex items-start justify-between gap-8">
             {/* Cidades */}
             <div className="text-center flex-shrink-0">
-              <div className={format === 'square' ? 'text-6xl font-bold text-blue-600' : 'text-5xl font-bold text-blue-600'}>
+              <div className={format === 'square' ? 'text-6xl font-bold text-blue-600' : 'text-7xl font-bold text-blue-600'}>
                 {stats.totalCities}
               </div>
-              <div className={format === 'square' ? 'text-xl text-gray-600 font-medium mt-2' : 'text-base text-gray-600 font-medium mt-1'}>
+              <div className={format === 'square' ? 'text-xl text-gray-600 font-medium mt-2' : 'text-2xl text-gray-600 font-medium mt-3'}>
                 {stats.totalCities === 1 ? 'Cidade' : 'Cidades'}
               </div>
             </div>
 
             {/* Divisor */}
-            <div className={format === 'square' ? 'w-px h-20 bg-gray-200 flex-shrink-0' : 'w-px h-16 bg-gray-200 flex-shrink-0'} />
+            <div className={format === 'square' ? 'w-px h-20 bg-gray-200 flex-shrink-0' : 'w-px h-24 bg-gray-200 flex-shrink-0'} />
 
             {/* Países */}
             <div className="text-center flex-shrink-0">
-              <div className={format === 'square' ? 'text-6xl font-bold text-green-600' : 'text-5xl font-bold text-green-600'}>
+              <div className={format === 'square' ? 'text-6xl font-bold text-green-600' : 'text-7xl font-bold text-green-600'}>
                 {stats.totalCountries}
               </div>
-              <div className={format === 'square' ? 'text-xl text-gray-600 font-medium mt-2' : 'text-base text-gray-600 font-medium mt-1'}>
+              <div className={format === 'square' ? 'text-xl text-gray-600 font-medium mt-2' : 'text-2xl text-gray-600 font-medium mt-3'}>
                 {stats.totalCountries === 1 ? 'País' : 'Países'}
               </div>
             </div>
 
             {/* Divisor */}
-            <div className={format === 'square' ? 'w-px h-20 bg-gray-200 flex-shrink-0' : 'w-px h-16 bg-gray-200 flex-shrink-0'} />
+            <div className={format === 'square' ? 'w-px h-20 bg-gray-200 flex-shrink-0' : 'w-px h-24 bg-gray-200 flex-shrink-0'} />
 
             {/* Top 3 países */}
             <div className="flex-1">
-              <div className={format === 'square' ? 'text-base text-gray-500 font-medium mb-2' : 'text-sm text-gray-500 font-medium mb-2'}>
+              <div className={format === 'square' ? 'text-base text-gray-500 font-medium mb-2' : 'text-xl text-gray-500 font-medium mb-3'}>
                 Países mais visitados
               </div>
-              <div className="space-y-1">
+              <div className={format === 'square' ? 'space-y-1' : 'space-y-2'}>
                 {stats.topCountries.slice(0, 3).map((country) => (
                   <div key={country} className="flex items-center gap-2">
-                    <span className={format === 'square' ? 'text-2xl' : 'text-xl'}>{getCountryFlag(country)}</span>
+                    <span className={format === 'square' ? 'text-2xl' : 'text-3xl'}>{getCountryFlag(country)}</span>
                     <div className="flex-1 min-w-0">
-                      <span className={format === 'square' ? 'text-sm font-medium text-gray-700' : 'text-xs font-medium text-gray-700'}>
+                      <span className={format === 'square' ? 'text-sm font-medium text-gray-700' : 'text-lg font-medium text-gray-700'}>
                         {country}
                       </span>
-                      <span className={format === 'square' ? 'text-xs text-gray-500 ml-2' : 'text-[10px] text-gray-500 ml-1'}>
+                      <span className={format === 'square' ? 'text-xs text-gray-500 ml-2' : 'text-base text-gray-500 ml-2'}>
                         ({stats.citiesByCountry.get(country)})
                       </span>
                     </div>
@@ -198,7 +198,7 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
 
       {/* Footer */}
       <div className="relative z-10 text-center flex items-center justify-center">
-        <p className={format === 'square' ? 'text-xl text-gray-500 font-medium' : 'text-base text-gray-500 font-medium'}>
+        <p className={format === 'square' ? 'text-xl text-gray-500 font-medium' : 'text-2xl text-gray-500 font-medium'}>
           🌐 Lugares do Mundo • Criado em {new Date().getFullYear()}
         </p>
       </div>

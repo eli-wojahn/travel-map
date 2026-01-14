@@ -23,18 +23,8 @@ export function useShareImage() {
         throw new Error('Elemento não encontrado');
       }
 
-      // Torna o elemento visível temporariamente
-      const parent = element.parentElement as HTMLElement;
-      const originalVisibility = parent?.style.visibility;
-      const originalLeft = parent?.style.left;
-      
-      if (parent) {
-        parent.style.visibility = 'visible';
-        parent.style.left = '0';
-      }
-
       // Aguarda renderização completa
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
@@ -43,12 +33,6 @@ export function useShareImage() {
         useCORS: true,
         allowTaint: true,
       });
-
-      // Restaura visibilidade
-      if (parent) {
-        parent.style.visibility = originalVisibility || 'hidden';
-        parent.style.left = originalLeft || '-10000px';
-      }
 
       return new Promise((resolve) => {
         canvas.toBlob(
