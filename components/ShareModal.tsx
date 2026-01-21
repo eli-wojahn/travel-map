@@ -80,72 +80,64 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
         {/* Header fixo */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg flex-shrink-0">
-          <h2 className="text-xl font-semibold text-gray-900">
-            📤 Compartilhar nas Redes Sociais
+        <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between rounded-t-lg flex-shrink-0">
+          <h2 className="text-base sm:text-xl font-semibold text-gray-900">
+            📤 Compartilhar
           </h2>
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
             aria-label="Fechar"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Content com scroll */}
-        <div className="p-4 space-y-4 overflow-y-auto">
+        <div className="p-2 sm:p-4 space-y-3 sm:space-y-4 overflow-y-auto">
         {/* Seletor de formato */}
-        <div className="flex flex-col gap-3">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="flex flex-col gap-2 sm:gap-3">
+          <label className="text-xs sm:text-sm font-medium text-gray-700">
             Formato da imagem:
           </label>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               onClick={() => setFormat('square')}
-              className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+              className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all ${
                 format === 'square'
                   ? 'border-orange bg-orange/10 text-orange font-semibold'
                   : 'border-gray-200 hover:border-gray-300 text-gray-700'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
-                <span>�</span>
-                <div className="text-left">
-                  <div className="text-sm">Quadrado (1:1)</div>
-                  <div className="text-xs opacity-75">Instagram Post, WhatsApp</div>
-                </div>
+                <span className="text-lg sm:text-xl">📷</span>
               </div>
             </button>
             <button
               onClick={() => setFormat('portrait')}
-              className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+              className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all ${
                 format === 'portrait'
                   ? 'border-orange bg-orange/10 text-orange font-semibold'
                   : 'border-gray-200 hover:border-gray-300 text-gray-700'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
-                <span>📱</span>
-                <div className="text-left">
-                  <div className="text-sm">Retrato (9:16)</div>
-                  <div className="text-xs opacity-75">Instagram/WhatsApp Stories</div>
-                </div>
+                <span className="text-lg sm:text-xl">📱</span>
               </div>
             </button>
           </div>
         </div>
 
         {/* Preview do card */}
-        <div className="bg-gray-50 rounded-lg p-2 border-2 border-gray-200">
-          <div className="text-sm font-medium text-gray-700 mb-1 px-1 flex items-center justify-between">
-            <span>Preview da imagem:</span>
-            <span className="text-xs text-gray-500">
+        <div className="bg-gray-50 rounded-lg p-1 sm:p-2 border-2 border-gray-200">
+          <div className="text-xs sm:text-sm font-medium text-gray-700 mb-1 px-1 flex items-center justify-between">
+            <span className="text-[10px] sm:text-xs">Preview:</span>
+            <span className="text-[10px] sm:text-xs text-gray-500">
               {format === 'square' ? '1080x1080px' : '1080x1920px'}
             </span>
           </div>
@@ -159,7 +151,7 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
               style={{
                 transform: format === 'square' ? 'scale(0.555)' : 'scale(0.375)',
                 transformOrigin: 'center center',
-                width: format === 'square' ? '1080px' : '1080px',
+                width: '1080px',
                 height: format === 'square' ? '1080px' : '1920px',
               }}
             >
@@ -170,58 +162,58 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
 
         {/* Mensagens de feedback */}
         {showSuccess && (
-          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-green-50 border border-green-200 text-green-800 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
             {showSuccess}
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-800 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
             ⚠️ {error}
           </div>
         )}
 
         {/* Botões de ação */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 sm:gap-3">
           <button
             onClick={handleDownload}
             disabled={isGenerating}
-            className="w-full bg-orange hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-orange hover:bg-orange-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isGenerating ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Gerando imagem...
+                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs sm:text-base">Gerando...</span>
               </>
             ) : (
               <>
                 <span>📥</span>
-                Baixar Imagem
+                <span>Baixar Imagem</span>
               </>
             )}
           </button>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
               onClick={handleCopy}
               disabled={isGenerating}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2"
             >
               <span>📋</span>
-              Copiar
+              <span>Copiar</span>
             </button>
 
             <button
               onClick={handleShare}
               disabled={isGenerating}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="bg-green-500 hover:bg-green-600 text-white px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2"
             >
               <span>📱</span>
-              Compartilhar
+              <span>Compartilhar</span>
             </button>
           </div>
 
-          <p className="text-xs text-gray-500 text-center mt-2">
+          <p className="text-[10px] sm:text-xs text-gray-500 text-center mt-1 sm:mt-2">
             💡 Dica: Use &quot;Copiar&quot; para colar diretamente no WhatsApp ou Instagram!
           </p>
         </div>
