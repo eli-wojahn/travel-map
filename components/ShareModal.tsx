@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ShareCard from './ShareCard';
+import CanvasPreview from './CanvasPreview';
 import { Place } from '@/types';
 import { useShareImage } from '@/hooks/useShareImage';
 
@@ -133,32 +134,24 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
           </div>
         </div>
 
-        {/* Preview do card */}
-        <div className="bg-gray-50 rounded-lg p-1 sm:p-2 border-2 border-gray-200">
-          <div className="text-xs sm:text-sm font-medium text-gray-700 mb-1 px-1 flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs">Preview:</span>
-            <span className="text-[10px] sm:text-xs text-gray-500">
-              {format === 'square' ? '1080x1080px' : '1080x1920px'}
-            </span>
-          </div>
-          
-          {/* Preview visual - mostra o card real em miniatura */}
-          <div className="bg-white rounded-lg border border-gray-300 flex items-center justify-center" style={{
-            height: format === 'square' ? '600px' : '720px',
-            overflow: 'hidden',
-          }}>
-            <div 
-              style={{
-                transform: format === 'square' ? 'scale(0.555)' : 'scale(0.375)',
-                transformOrigin: 'center center',
-                width: '1080px',
-                height: format === 'square' ? '1080px' : '1920px',
-              }}
+        {/* Preview do card - Professional print-style preview */}
+          <div 
+            className="bg-gray-50 rounded-lg border-2 border-gray-200 overflow-hidden"
+            style={{
+              height: format === 'square' ? '60vh' : '65vh',
+              minHeight: '300px',
+              maxHeight: format === 'square' ? '600px' : '800px',
+            }}
+          >
+            <CanvasPreview
+              canvasWidth={1080}
+              canvasHeight={format === 'square' ? 1080 : 1920}
+              className="p-4"
             >
               <ShareCard places={places} format={format} />
-            </div>
+            </CanvasPreview>
           </div>
-        </div>
+
 
         {/* Mensagens de feedback */}
         {showSuccess && (
