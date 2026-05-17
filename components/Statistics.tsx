@@ -55,7 +55,7 @@ export default function Statistics({ places, onShareClick }: StatisticsProps) {
 
   if (places.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-8">
+      <div className="text-center text-muted-foreground py-8">
         <p>{t('statistics.noStatsYet')}</p>
         <p className="text-sm mt-2">{t('statistics.addCitiesForStats')}</p>
       </div>
@@ -83,12 +83,12 @@ export default function Statistics({ places, onShareClick }: StatisticsProps) {
       {/* Cards de estatísticas principais */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="p-4 text-center">
-          <p className="text-3xl font-bold text-blue-600">{stats.totalCities}</p>
-          <p className="text-sm text-gray-600 mt-1">{t('statistics.cities')}</p>
+          <p className="text-3xl font-bold text-primary">{stats.totalCities}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t('statistics.cities')}</p>
         </div>
         <div className="p-4 text-center">
-          <p className="text-3xl font-bold text-green-600">{stats.totalCountries}</p>
-          <p className="text-sm text-gray-600 mt-1">{t('statistics.countries')}</p>
+          <p className="text-3xl font-bold text-secondary">{stats.totalCountries}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t('statistics.countries')}</p>
         </div>
       </div>
 
@@ -96,7 +96,7 @@ export default function Statistics({ places, onShareClick }: StatisticsProps) {
       {stats.totalCountries > 0 && (
         <Collapsible.Root open={openCountries} onOpenChange={setOpenCountries}>
           <div className="mb-2">
-            <h4 className="font-medium text-gray-700">{t('statistics.visitedCountries')}</h4>
+            <h4 className="font-medium text-muted-foreground">{t('statistics.visitedCountries')}</h4>
           </div>
           <Collapsible.Content
             forceMount
@@ -113,11 +113,11 @@ export default function Statistics({ places, onShareClick }: StatisticsProps) {
                     key={country}
                     className="flex items-center justify-between p-2"
                   >
-                    <span className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground flex items-center gap-2">
                       <span className="text-lg">{getCountryFlag(country)}</span>
                       <span>{country}</span>
                     </span>
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-muted-foreground">
                       {cityCount} {cityCount === 1 ? t('cities.city') : t('cities.cities')}
                     </span>
                   </div>

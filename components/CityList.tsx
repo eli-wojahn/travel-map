@@ -63,19 +63,19 @@ function SortableCityItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors ${
+      className={`flex items-center justify-between p-3 bg-card rounded-lg hover:bg-muted transition-colors ${
         isDragging ? 'shadow-lg' : ''
       }`}
     >
       <div className="flex items-center gap-2 flex-1 min-w-0" {...attributes} {...listeners}>
         <div className="flex-1 min-w-0 cursor-grab active:cursor-grabbing">
           {/* NÚMERO + NOME */}
-          <p className="font-medium text-gray-900 truncate">
+          <p className="font-medium text-card-foreground truncate">
             {index + 1}. {place.name}
           </p>
 
           {(place.country || place.state) && (
-            <p className="text-sm text-gray-600 flex items-center gap-1">
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
               {place.country && <span>{getCountryFlag(place.country)}</span>}
               <span>
                 {[place.state, place.country].filter(Boolean).join(', ')}
@@ -83,7 +83,7 @@ function SortableCityItem({
             </p>
           )}
 
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {new Date(place.createdAt).toLocaleDateString(locale === 'pt' ? 'pt-BR' : 'en-US', {
               day: '2-digit',
               month: '2-digit',
@@ -95,7 +95,7 @@ function SortableCityItem({
 
       <button
         onClick={() => onRemovePlace(place.id)}
-        className="ml-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+        className="ml-4 p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
         aria-label={t('cities.removeAria', { name: place.name })}
         title={t('cities.removeAria', { name: place.name })}
       >
@@ -149,7 +149,7 @@ export default function CityList({
 
   if (places.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-8">
+      <div className="text-center text-muted-foreground py-8">
         <p>{t('cities.noCitiesYet')}</p>
         <p className="text-sm mt-2">{t('cities.addCityToStart')}</p>
       </div>

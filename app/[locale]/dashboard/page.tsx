@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase-browser';
@@ -14,6 +15,7 @@ import WorldMapSimple from '@/components/WorldMapSimple';
 import Modal from '@/components/Modal';
 import ShareModal from '@/components/ShareModal';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { getCountryFlag } from '@/lib/countryFlags';
 import { Place } from '@/types';
 
@@ -21,8 +23,8 @@ function MapLoading() {
   const t = useTranslations('map');
 
   return (
-    <div className="w-full h-full min-h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
-      <p className="text-gray-500">{t('loadingMap')}</p>
+    <div className="w-full h-full min-h-[600px] rounded-lg border border-border flex items-center justify-center bg-muted">
+      <p className="text-muted-foreground">{t('loadingMap')}</p>
     </div>
   );
 }
@@ -57,6 +59,69 @@ export default function DashboardPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
   const [isMigrating, setIsMigrating] = useState(false);
+
+  // Função para migrar dados do localStorage para o Supabase
+  const migrateGuestData = useCallback(async () => {
+    try {
+      // Carrega lugares do localStorage
+      const localPlaces = loadPlaces();
+
+      // Se não há dados para migrar, não faz nada
+      if (localPlaces.length === 0) {
+        console.log('📭 Nenhum dado para migrar');
+        return;
+      }
+
+      setIsMigrating(true);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsMigrating(false);
+        return;
+      }
+
+      console.log('🔄 Migrando', localPlaces.length, 'lugares do localStorage para Supabase...');
+
+      // Prepara lugares para inserção
+      const placesToInsert = localPlaces.map((place) => ({
+        user_id: user.id,
+        name: place.name,
+        state: place.state || null,
+        country: place.country || null,
+        latitude: place.latitude,
+        longitude: place.longitude,
+        created_at: place.createdAt,
+      }));
+
+      // Insere no Supabase
+      const { data: insertedPlaces, error: insertError } = await supabase
+        .from('places')
+        .insert(placesToInsert as any)
+        .select();
+
+      if (!insertError && insertedPlaces) {
+        console.log('✅ Migração concluída!', insertedPlaces.length, 'lugares salvos');
+
+        // Limpa localStorage após migração bem-sucedida
+        localStorage.removeItem('lugares-do-mundo-places');
+        console.log('🗑️ localStorage limpo');
+
+        // Aguarda 1 segundo para mostrar mensagem de sucesso
+        setTimeout(() => {
+          setIsMigrating(false);
+          // O usePlaces vai recarregar automaticamente via realtime
+        }, 1500);
+      } else {
+        console.error('Erro na migração:', insertError);
+        setIsMigrating(false);
+        setError(t('errors.errorSavingData'));
+      }
+    } catch (err) {
+      console.error('Erro ao migrar dados:', err);
+      setIsMigrating(false);
+      setError(t('errors.errorSavingData'));
+    }
+  }, [supabase, t]);
 
   // Verifica autenticação (mas não redireciona mais)
   useEffect(() => {
@@ -97,7 +162,7 @@ export default function DashboardPage() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [migrateGuestData, supabase]);
 
   // Pré-carrega a animação
   useEffect(() => {
@@ -209,69 +274,6 @@ export default function DashboardPage() {
     window.location.reload(); // Recarrega para atualizar o estado
   };
 
-  // Função para migrar dados do localStorage para o Supabase
-  const migrateGuestData = async () => {
-    try {
-      // Carrega lugares do localStorage
-      const localPlaces = loadPlaces();
-      
-      // Se não há dados para migrar, não faz nada
-      if (localPlaces.length === 0) {
-        console.log('📭 Nenhum dado para migrar');
-        return;
-      }
-
-      setIsMigrating(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsMigrating(false);
-        return;
-      }
-
-      console.log('🔄 Migrando', localPlaces.length, 'lugares do localStorage para Supabase...');
-      
-      // Prepara lugares para inserção
-      const placesToInsert = localPlaces.map((place) => ({
-        user_id: user.id,
-        name: place.name,
-        state: place.state || null,
-        country: place.country || null,
-        latitude: place.latitude,
-        longitude: place.longitude,
-        created_at: place.createdAt,
-      }));
-
-      // Insere no Supabase
-      const { data: insertedPlaces, error: insertError } = await supabase
-        .from('places')
-        .insert(placesToInsert as any)
-        .select();
-
-      if (!insertError && insertedPlaces) {
-        console.log('✅ Migração concluída!', insertedPlaces.length, 'lugares salvos');
-        
-        // Limpa localStorage após migração bem-sucedida
-        localStorage.removeItem('lugares-do-mundo-places');
-        console.log('🗑️ localStorage limpo');
-        
-        // Aguarda 1 segundo para mostrar mensagem de sucesso
-        setTimeout(() => {
-          setIsMigrating(false);
-          // O usePlaces vai recarregar automaticamente via realtime
-        }, 1500);
-      } else {
-        console.error('Erro na migração:', insertError);
-        setIsMigrating(false);
-        setError(t('errors.errorSavingData'));
-      }
-    } catch (err) {
-      console.error('Erro ao migrar dados:', err);
-      setIsMigrating(false);
-      setError(t('errors.errorSavingData'));
-    }
-  };
-
   // Handler para o botão de salvar/login
   const handleSaveToCloud = () => {
     if (places.length === 0) {
@@ -283,17 +285,17 @@ export default function DashboardPage() {
 
   if (isLoadingAuth) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-orange rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">{t('common.loading')}</p>
+          <div className="w-16 h-16 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background">
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-7xl">
         {/* Cabeçalho com info do usuário */}
         <header className="mb-6 sm:mb-8">
@@ -301,14 +303,17 @@ export default function DashboardPage() {
           <div className="lg:hidden">
             <div className="flex items-center justify-between mb-4">
               <div className="text-center flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                <h1 className="text-3xl font-bold text-foreground mb-1">
                   {t('dashboard.title')}
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {t('dashboard.subtitle')}
                 </p>
               </div>
-              <LanguageSwitcher />
+              <div className="flex items-center gap-2 pl-2">
+                <ThemeSwitcher />
+                <LanguageSwitcher />
+              </div>
             </div>
             
             {/* Modo Guest - Botão de Salvar */}
@@ -319,7 +324,7 @@ export default function DashboardPage() {
                     <p className="text-xs font-medium text-orange/90 mb-1">
                       {t('auth.guestModeShort')}
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-muted-foreground">
                       {t('auth.loginToSync')}
                     </p>
                   </div>
@@ -336,25 +341,27 @@ export default function DashboardPage() {
             
             {/* Modo Autenticado - Info do usuário */}
             {user && (
-              <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between bg-card rounded-lg p-3 shadow-sm border border-border">
                 <div className="flex items-center gap-3">
                   {user.user_metadata?.avatar_url && (
-                    <img
+                    <Image
                       src={user.user_metadata.avatar_url}
                       alt="Avatar"
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-full"
                     />
                   )}
                   <div className="text-left">
-                    <p className="text-xs text-gray-600">{t('auth.hello')}</p>
-                    <p className="font-medium text-sm text-gray-900 truncate max-w-[150px]">
+                    <p className="text-xs text-muted-foreground">{t('auth.hello')}</p>
+                    <p className="font-medium text-sm text-foreground truncate max-w-[150px]">
                       {user.user_metadata?.full_name || user.email}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="px-3 py-1.5 text-xs bg-muted text-muted-foreground rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   {t('auth.logout')}
                 </button>
@@ -364,12 +371,15 @@ export default function DashboardPage() {
 
           {/* Desktop: Layout horizontal original */}
           <div className="hidden lg:flex items-center justify-between">
-            <LanguageSwitcher />
+            <div className="flex items-center gap-2">
+              <ThemeSwitcher />
+              <LanguageSwitcher />
+            </div>
             <div className="text-center flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              <h1 className="text-4xl font-bold text-foreground mb-2">
                 {t('dashboard.title')}
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 {t('dashboard.subtitle')}
               </p>
             </div>
@@ -382,7 +392,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-medium text-orange/90 mb-1">
                       {t('auth.guestModeShort')}
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-muted-foreground">
                       {t('auth.guestModeDescription')}
                     </p>
                   </div>
@@ -401,21 +411,23 @@ export default function DashboardPage() {
             {user && (
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">{t('auth.hello')}</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-muted-foreground">{t('auth.hello')}</p>
+                  <p className="font-medium text-foreground">
                     {user.user_metadata?.full_name || user.email}
                   </p>
                 </div>
                 {user.user_metadata?.avatar_url && (
-                  <img
+                  <Image
                     src={user.user_metadata.avatar_url}
                     alt="Avatar"
+                    width={40}
+                    height={40}
                     className="w-10 h-10 rounded-full"
                   />
                 )}
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="px-4 py-2 text-sm bg-muted text-muted-foreground rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   {t('auth.logout')}
                 </button>
@@ -426,7 +438,7 @@ export default function DashboardPage() {
 
         {/* Mensagem de erro */}
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="mb-4 p-4 bg-destructive/10 border border-destructive/30 text-destructive rounded-lg">
             <p className="font-semibold">{t('common.error')}:</p>
             <p>{error}</p>
           </div>
@@ -440,13 +452,13 @@ export default function DashboardPage() {
         {/* Mapa */}
         <div className="mb-6 max-w-6xl mx-auto">
           {isLoading ? (
-            <div className="w-full h-full min-h-[400px] sm:min-h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
-              <p className="text-gray-500">{t('dashboard.loadingPlaces')}</p>
+            <div className="w-full h-full min-h-[400px] sm:min-h-[600px] rounded-lg border border-border flex items-center justify-center bg-muted">
+              <p className="text-muted-foreground">{t('dashboard.loadingPlaces')}</p>
             </div>
           ) : (
             <Map places={places} onMapClick={handleMapClick} />
           )}
-          <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center px-2">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-2 text-center px-2">
             {t('dashboard.clickMapToAdd')}
           </p>
 
@@ -494,10 +506,10 @@ export default function DashboardPage() {
 
         {/* Lista e Estatísticas */}
         <div id="city-list-section" className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto items-start">
-          <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm min-h-56">
+          <div className="bg-card rounded-lg border border-border p-4 shadow-sm min-h-56">
             <CityList places={places} onRemovePlace={removePlace} onReorderPlaces={reorderPlaces} />
           </div>
-          <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm min-h-56">
+          <div className="bg-card rounded-lg border border-border p-4 shadow-sm min-h-56">
             <Statistics places={places} onShareClick={() => setShowShareModal(true)} />
           </div>
         </div>
@@ -508,14 +520,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Rodapé */}
-        <footer className="mt-8 text-center text-sm text-gray-500">
+        <footer className="mt-8 text-center text-sm text-muted-foreground">
           <p>
             {t('dashboard.footerText')}{' '}
             <a
               href="https://github.com/eli-wojahn/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-primary hover:underline"
             >
               Elias Wojahn
             </a>
@@ -538,7 +550,7 @@ export default function DashboardPage() {
           message={
             <div className="flex flex-col items-center justify-center py-4">
               <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4" />
-              <p className="text-gray-600 text-center">
+              <p className="text-muted-foreground text-center">
                 {t('modal.migratingMessage')}
               </p>
             </div>
@@ -619,7 +631,7 @@ export default function DashboardPage() {
                 )}
                 <p className="font-semibold text-lg">{recentlyAddedPlace.name}</p>
                 {(recentlyAddedPlace.state || recentlyAddedPlace.country) && (
-                  <p className="text-gray-600 flex items-center gap-1 justify-center">
+                  <p className="text-muted-foreground flex items-center gap-1 justify-center">
                     {recentlyAddedPlace.country && (
                       <span>{getCountryFlag(recentlyAddedPlace.country)}</span>
                     )}
@@ -628,7 +640,7 @@ export default function DashboardPage() {
                     </span>
                   </p>
                 )}
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {t('cities.addedOn')} {new Date(recentlyAddedPlace.createdAt).toLocaleDateString(locale === 'pt' ? 'pt-BR' : 'en-US', {
                     day: '2-digit',
                     month: '2-digit',

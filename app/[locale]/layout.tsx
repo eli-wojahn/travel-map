@@ -3,6 +3,7 @@ import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server
 import { notFound } from 'next/navigation';
 import { Analytics } from '@vercel/analytics/next';
 import { locales } from '@/i18n/config';
+import { ThemeProvider } from '@/lib/theme';
 
 type Props = {
   children: React.ReactNode;
@@ -42,9 +43,11 @@ export default async function LocaleLayout({
   const messages = await getMessages({ locale: activeLocale });
 
   return (
-    <NextIntlClientProvider locale={activeLocale} messages={messages}>
-      {children}
-      <Analytics />
-    </NextIntlClientProvider>
+    <ThemeProvider>
+      <NextIntlClientProvider locale={activeLocale} messages={messages}>
+        {children}
+        <Analytics />
+      </NextIntlClientProvider>
+    </ThemeProvider>
   );
 }

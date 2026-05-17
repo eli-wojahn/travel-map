@@ -4,6 +4,7 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { useTranslations } from 'next-intl';
 import { Place } from '@/types';
+import { useTheme } from '@/lib/theme';
 
 const GEO_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
 
@@ -179,6 +180,29 @@ const COUNTRY_ALIASES: Record<string, string> = {
 
 export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
   const t = useTranslations('map');
+  const { resolvedTheme } = useTheme();
+  const mapPalette = useMemo(
+    () =>
+      resolvedTheme === 'dark'
+        ? {
+            visited: '#d87943',
+            neutral: '#2a2a2a',
+            stroke: '#111111',
+            legendNeutral: '#3a3a3a',
+            warningBg: 'bg-destructive/10',
+            warningText: 'text-destructive',
+          }
+        : {
+            visited: '#d87943',
+            neutral: '#e5e7eb',
+            stroke: '#ffffff',
+            legendNeutral: '#d1d5db',
+            warningBg: 'bg-destructive/10',
+            warningText: 'text-destructive',
+          },
+    [resolvedTheme]
+  );
+
   const visitedCountries = useMemo(() => {
     return Array.from(new Set(places.map((p) => p.country).filter(Boolean))) as string[];
   }, [places]);
@@ -236,8 +260,8 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
   }
 
   function getFillForGeo(geo: any) {
-    if (isGeoVisited(geo)) return '#d87943';
-    return '#e5e7eb';
+    if (isGeoVisited(geo)) return mapPalette.visited;
+    return mapPalette.neutral;
   }
 
   // diagnostic: list countries from places that couldn't be matched
@@ -251,13 +275,13 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
       }
     });
     return Array.from(new Set(list));
-  }, [visitedCountries, geoCountryNames, matchGeoCountry]);
+  }, [visitedCountries, matchGeoCountry]);
 
   // Debug: log all available geo countries on load
   // removed debug effect
 
   return (
-    <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm">
+    <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
       <h3 className="font-semibold text-lg mb-4">{t('worldMapTitle')}</h3>
       <div className="w-full">
         <ComposableMap projectionConfig={{ scale: 145 }}>
@@ -280,7 +304,7 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
                       key={geo.rsmKey}
                       geography={geo}
                       fill={getFillForGeo(geo)}
-                      stroke="#ffffff"
+                      stroke={mapPalette.stroke}
                       strokeWidth={0.3}
                       style={{
                         default: { outline: 'none' },
@@ -295,15 +319,15 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
           </Geographies>
         </ComposableMap>
       </div>
-      <div className="mt-4 pt-4 border-t border-gray-200">
+      <div className="mt-4 pt-4 border-t border-border">
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#d87943' }} />
-            <span className="text-gray-700">{t('visitedCountry')}</span>
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: mapPalette.visited }} />
+            <span className="text-muted-foreground">{t('visitedCountry')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-gray-300" />
-            <span className="text-gray-700">{t('noVisits')}</span>
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: mapPalette.legendNeutral }} />
+            <span className="text-muted-foreground">{t('noVisits')}</span>
           </div>
         </div>
 
@@ -311,7 +335,7 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
           <div className="mt-3">
             <button
               onClick={() => setShowUnrecognized((s) => !s)}
-              className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded text-sm"
+              className={`px-3 py-1 rounded text-sm ${mapPalette.warningBg} ${mapPalette.warningText}`}
             >
               {showUnrecognized
                 ? t('hideUnrecognizedCountries')
@@ -319,7 +343,7 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
             </button>
 
             {showUnrecognized && (
-              <ul className="mt-2 text-sm text-gray-700 list-disc list-inside">
+              <ul className="mt-2 text-sm text-muted-foreground list-disc list-inside">
                 {unrecognizedCountries.map((c) => (
                   <li key={c} className="break-words">{c}</li>
                 ))}

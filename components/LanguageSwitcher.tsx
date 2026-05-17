@@ -34,11 +34,11 @@ export default function LanguageSwitcher() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={isPending}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card text-card-foreground hover:bg-muted transition-colors disabled:opacity-50"
         aria-label="Change language"
       >
         <span className="text-lg">{localeFlags[locale as Locale]}</span>
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium">
           {locale.toUpperCase()}
         </span>
         <svg
@@ -67,13 +67,15 @@ export default function LanguageSwitcher() {
           />
           
           {/* Dropdown */}
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+          <div className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-lg border border-border py-1 z-20">
             {locales.map((loc) => (
               <button
                 key={loc}
                 onClick={() => switchLocale(loc)}
-                className={`w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                  locale === loc ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'
+                className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors ${
+                  locale === loc
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
                 <span className="text-lg">{localeFlags[loc]}</span>

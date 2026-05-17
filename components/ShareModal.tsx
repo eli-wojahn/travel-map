@@ -99,15 +99,15 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
+      <div className="bg-card text-card-foreground rounded-lg shadow-xl max-w-5xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200 border border-border">
         {/* Header fixo */}
-        <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between rounded-t-lg flex-shrink-0">
-          <h2 className="text-base sm:text-xl font-semibold text-gray-900">
+        <div className="bg-card border-b border-border px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between rounded-t-lg flex-shrink-0">
+          <h2 className="text-base sm:text-xl font-semibold text-card-foreground">
             📤 {t('title')}
           </h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+            className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
             aria-label={t('title')}
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +120,7 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
         <div className="p-2 sm:p-4 space-y-3 sm:space-y-4 overflow-y-auto">
         {/* Seletor de formato */}
         <div className="flex flex-col gap-2 sm:gap-3">
-          <label className="text-xs sm:text-sm font-medium text-gray-700">
+          <label className="text-xs sm:text-sm font-medium text-muted-foreground">
             {t('format')}
           </label>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
@@ -128,8 +128,8 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
               onClick={() => setFormat('square')}
               className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all ${
                 format === 'square'
-                  ? 'border-orange bg-orange/10 text-orange font-semibold'
-                  : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  ? 'border-primary bg-primary/10 text-primary font-semibold'
+                  : 'border-border hover:border-primary/40 text-muted-foreground hover:text-foreground'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -141,8 +141,8 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
               onClick={() => setFormat('portrait')}
               className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all ${
                 format === 'portrait'
-                  ? 'border-orange bg-orange/10 text-orange font-semibold'
-                  : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  ? 'border-primary bg-primary/10 text-primary font-semibold'
+                  : 'border-border hover:border-primary/40 text-muted-foreground hover:text-foreground'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -155,7 +155,7 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
 
         {/* Preview do card - Professional print-style preview */}
           <div 
-            className="bg-gray-50 rounded-lg border-2 border-gray-200 overflow-hidden"
+            className="bg-muted rounded-lg border-2 border-border overflow-hidden"
             style={{
               height: format === 'square' ? '60vh' : '65vh',
               minHeight: '300px',
@@ -174,13 +174,13 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
 
         {/* Mensagens de feedback */}
         {showSuccess && (
-          <div className="bg-green-50 border border-green-200 text-green-800 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
+          <div className="bg-secondary/10 border border-secondary/30 text-secondary px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
             {showSuccess}
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
+          <div className="bg-destructive/10 border border-destructive/30 text-destructive px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
             ⚠️ {error}
           </div>
         )}
@@ -225,7 +225,7 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
             </button>
           </div>
 
-          <p className="text-[10px] sm:text-xs text-gray-500 text-center mt-1 sm:mt-2">
+          <p className="text-[10px] sm:text-xs text-muted-foreground text-center mt-1 sm:mt-2">
             {t('tipCopy')}
           </p>
         </div>

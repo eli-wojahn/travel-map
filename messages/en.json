@@ -58,6 +58,13 @@
     "footerText": "Developed by",
     "loadingPlaces": "Loading places..."
   },
+  "theme": {
+    "label": "Toggle theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "current": "Current preference: {theme}. Applied theme: {resolved}."
+  },
   "cities": {
     "visitedCities": "Visited Cities",
     "noCitiesYet": "No cities added yet.",

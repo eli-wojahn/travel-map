@@ -4,6 +4,7 @@
 
 /* Design tokens / cores (esquema tweakcn) */
 :root {
+  color-scheme: light;
   --background: 0 0% 100%;
   --foreground: 220.9091 39.2857% 10.9804%;
   --card: 0 0% 100%;
@@ -59,6 +60,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: 270 5.5556% 7.0588%;
   --foreground: 0 0% 75.6863%;
   --card: 0 0% 7.0588%;
@@ -95,6 +97,48 @@
 
 body {
   letter-spacing: var(--tracking-normal);
+}
+
+html,
+body,
+main,
+section,
+article,
+header,
+footer,
+aside,
+nav,
+div,
+button,
+a,
+input,
+textarea,
+select,
+svg {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  main,
+  section,
+  article,
+  header,
+  footer,
+  aside,
+  nav,
+  div,
+  button,
+  a,
+  input,
+  textarea,
+  select,
+  svg {
+    transition: none !important;
+  }
 }
 
 /* Estilos globais para o Leaflet */

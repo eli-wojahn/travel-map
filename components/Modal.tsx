@@ -38,18 +38,18 @@ export default function Modal({
     switch (type) {
       case 'warning':
         return {
-          icon: 'bg-yellow-100 text-yellow-600',
-          button: 'bg-yellow-600 hover:bg-yellow-700',
+          icon: 'bg-destructive/10 text-destructive',
+          button: 'bg-destructive hover:opacity-90',
         };
       case 'success':
         return {
-          icon: 'bg-green-100 text-green',
+          icon: 'bg-secondary/10 text-secondary',
           button: 'bg-green hover:opacity-90',
         };
       default:
         return {
-          icon: 'bg-blue-100 text-blue-600',
-          button: 'bg-blue-600 hover:bg-blue-700',
+          icon: 'bg-primary/10 text-primary',
+          button: 'bg-primary hover:opacity-90',
         };
     }
   };
@@ -58,7 +58,7 @@ export default function Modal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 animate-in fade-in zoom-in duration-200">
+      <div className="bg-card text-card-foreground border border-border rounded-lg shadow-xl max-w-md w-full mx-4 p-6 animate-in fade-in zoom-in duration-200">
         {/* Ícone ou Vídeo */}
         {title && (
           <div className="flex items-center justify-center mx-auto mb-4">
@@ -97,13 +97,13 @@ export default function Modal({
 
         {/* Título */}
         {title && (
-          <h2 className="text-lg font-semibold text-gray-900 text-center mb-2">
+          <h2 className="text-lg font-semibold text-card-foreground text-center mb-2">
             {title}
           </h2>
         )}
 
         {/* Mensagem */}
-        <div className="text-gray-600 text-center text-sm mb-6">
+        <div className="text-muted-foreground text-center text-sm mb-6">
           {message}
         </div>
 
@@ -120,7 +120,7 @@ export default function Modal({
             {cancelText && (
               <button
                 onClick={onCancel}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                className="px-4 py-2 text-muted-foreground bg-muted rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors font-medium"
               >
                 {cancelText}
               </button>
