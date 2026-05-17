@@ -3,6 +3,7 @@
 import { Place } from '@/types';
 import { getCountryFlag } from '@/lib/countryFlags';
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 
 const GEO_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
@@ -17,6 +18,7 @@ interface ShareCardProps {
  * Layout otimizado com mapa simplificado e estatísticas
  */
 export default function ShareCard({ places, format = 'square' }: ShareCardProps) {
+  const t = useTranslations('share');
   // Calcula estatísticas
   const stats = useMemo(() => {
     const totalCities = places.length;
@@ -79,11 +81,11 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
         <div className="flex items-center gap-4 mb-1">
           <span className={format === 'square' ? 'text-6xl' : 'text-7xl'} style={{ flexShrink: 0 }}>🌍</span>
           <h1 className={format === 'square' ? 'text-5xl font-bold text-gray-800 leading-tight' : 'text-6xl font-bold text-gray-800 leading-tight'}>
-            My Travel map
+            {t('cardTitle')}
           </h1>
         </div>
         <p className={format === 'square' ? 'text-2xl text-gray-600 ml-20' : 'text-3xl text-gray-600 ml-24'}>
-          Mapeando minhas aventuras pelo planeta
+          {t('cardSubtitle')}
         </p>
       </div>
 
@@ -151,7 +153,7 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
                 {stats.totalCities}
               </div>
               <div className={format === 'square' ? 'text-xl text-gray-600 font-medium mt-2' : 'text-2xl text-gray-600 font-medium mt-3'}>
-                {stats.totalCities === 1 ? 'Cidade' : 'Cidades'}
+                {stats.totalCities === 1 ? t('city') : t('cities')}
               </div>
             </div>
 
@@ -164,7 +166,7 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
                 {stats.totalCountries}
               </div>
               <div className={format === 'square' ? 'text-xl text-gray-600 font-medium mt-2' : 'text-2xl text-gray-600 font-medium mt-3'}>
-                {stats.totalCountries === 1 ? 'País' : 'Países'}
+                {stats.totalCountries === 1 ? t('country') : t('countries')}
               </div>
             </div>
 
@@ -174,7 +176,7 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
             {/* Top 3 países */}
             <div className="flex-1">
               <div className={format === 'square' ? 'text-base text-gray-500 font-medium mb-2' : 'text-xl text-gray-500 font-medium mb-3'}>
-                Países mais visitados
+                {t('mostVisitedCountries')}
               </div>
               <div className={format === 'square' ? 'space-y-1' : 'space-y-2'}>
                 {stats.topCountries.slice(0, 3).map((country) => (
@@ -199,7 +201,7 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
       {/* Footer */}
       <div className="relative z-10 text-center flex items-center justify-center">
         <p className={format === 'square' ? 'text-xl text-gray-500 font-medium' : 'text-2xl text-gray-500 font-medium'}>
-          🌐 Lugares do Mundo • Criado em {new Date().getFullYear()}
+          {t('cardFooter', { year: new Date().getFullYear() })}
         </p>
       </div>
     </div>

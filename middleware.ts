@@ -1,16 +1,27 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
+import { locales, defaultLocale } from './i18n/config';
+
+// Create next-intl middleware
+const intlMiddleware = createMiddleware({
+  locales,
+  defaultLocale,
+  localePrefix: 'always',
+});
 
 /**
- * Middleware do Next.js para gerenciar autenticação Supabase
- * Atualiza a sessão do usuário em cada request
+ * Middleware do Next.js para gerenciar autenticação Supabase e i18n
+ * Atualiza a sessão do usuário em cada request e detecta o locale
  */
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
+  // Handle internationalization first
+  let response = intlMiddleware(request);
+  
+  // If intl middleware returns a redirect, return it immediately
+  if (response.status === 307 || response.status === 308) {
+    return response;
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,11 +37,6 @@ export async function middleware(request: NextRequest) {
             value,
             ...options,
           });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
           response.cookies.set({
             name,
             value,
@@ -42,11 +48,6 @@ export async function middleware(request: NextRequest) {
             name,
             value: '',
             ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
           });
           response.cookies.set({
             name,
@@ -61,16 +62,21 @@ export async function middleware(request: NextRequest) {
   // Refresh session if expired - required for Server Components
   const { data: { session } } = await supabase.auth.getSession();
 
-  // Protege rotas que requerem autenticação
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/dashboard');
-  const isLoginRoute = request.nextUrl.pathname.startsWith('/login');
+  // Extract locale from pathname (e.g., /pt/dashboard -> pt)
+  const pathnameLocale = request.nextUrl.pathname.split('/')[1];
+  const locale = locales.includes(pathnameLocale as any) ? pathnameLocale : defaultLocale;
+
+  // Protege rotas que requerem autenticação (check after locale prefix)
+  const pathWithoutLocale = request.nextUrl.pathname.replace(`/${locale}`, '');
+  const isAuthRoute = pathWithoutLocale.startsWith('/dashboard');
+  const isLoginRoute = pathWithoutLocale.startsWith('/login');
 
   // Dashboard agora permite acesso sem autenticação (modo guest)
   // Não redireciona mais para login
 
   if (isLoginRoute && session) {
     // Redireciona para dashboard se já autenticado
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
   }
 
   return response;
@@ -80,10 +86,13 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
+     * - _next/webpack-hmr (HMR endpoint in development)
      * - favicon.ico (favicon file)
+     * - any file with an extension (e.g. .json, .mp4, .png)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|_next/webpack-hmr|favicon.ico|.*\\..*).*)',
   ],
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { Place } from '@/types';
@@ -71,6 +72,8 @@ interface MapProps {
  * devido às dependências do Leaflet que não funcionam com SSR
  */
 export default function Map({ places, onMapClick }: MapProps) {
+  const t = useTranslations('map');
+  const locale = useLocale();
   const [isMounted, setIsMounted] = useState(false);
 
   // Garante que o componente só renderize no cliente
@@ -86,7 +89,7 @@ export default function Map({ places, onMapClick }: MapProps) {
   if (!isMounted) {
     return (
       <div className="w-full h-[400px] sm:h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
-        <p className="text-gray-500">Carregando mapa...</p>
+        <p className="text-gray-500">{t('loadingMap')}</p>
       </div>
     );
   }
@@ -143,7 +146,7 @@ export default function Map({ places, onMapClick }: MapProps) {
                   </p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
-                  {new Date(place.createdAt).toLocaleDateString('pt-BR')}
+                  {new Date(place.createdAt).toLocaleDateString(locale === 'pt' ? 'pt-BR' : 'en-US')}
                 </p>
               </div>
             </Popup>

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase-browser';
 import { usePlaces } from '@/hooks/usePlaces';
 import { loadPlaces } from '@/lib/storage';
@@ -12,16 +13,23 @@ import Statistics from '@/components/Statistics';
 import WorldMapSimple from '@/components/WorldMapSimple';
 import Modal from '@/components/Modal';
 import ShareModal from '@/components/ShareModal';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { getCountryFlag } from '@/lib/countryFlags';
 import { Place } from '@/types';
 
+function MapLoading() {
+  const t = useTranslations('map');
+
+  return (
+    <div className="w-full h-full min-h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
+      <p className="text-gray-500">{t('loadingMap')}</p>
+    </div>
+  );
+}
+
 const Map = dynamic(() => import('@/components/Map'), {
   ssr: false,
-  loading: () => (
-    <div className="w-full h-full min-h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
-      <p className="text-gray-500">Carregando mapa...</p>
-    </div>
-  ),
+  loading: () => <MapLoading />,
 });
 
 const DotLottieReact = dynamic(
@@ -33,6 +41,8 @@ const DotLottieReact = dynamic(
  * Dashboard - Página principal após login
  */
 export default function DashboardPage() {
+  const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
@@ -107,7 +117,7 @@ export default function DashboardPage() {
       const isFirstPlace = places.length === 0;
       const addedPlace = await addPlace(place);
       if (!addedPlace) {
-        setError('Essa cidade já está na sua lista.');
+        setError(t('cities.cityAlreadyAdded'));
         return false;
       }
       setError(null);
@@ -122,7 +132,7 @@ export default function DashboardPage() {
       }
       return true;
     },
-    [addPlace, places]
+    [addPlace, places, t]
   );
 
   const scrollToList = () => {
@@ -138,7 +148,7 @@ export default function DashboardPage() {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error('Erro ao buscar informações do local');
+        throw new Error(t('errors.errorFetchingLocation'));
       }
 
       const data = await response.json();
@@ -165,7 +175,7 @@ export default function DashboardPage() {
       const addedPlace = await addPlace(placeData);
 
       if (!addedPlace) {
-        setError('Essa cidade já está na sua lista.');
+        setError(t('cities.cityAlreadyAdded'));
         return;
       }
 
@@ -182,10 +192,10 @@ export default function DashboardPage() {
     } catch (err) {
       const errorMessage = err instanceof Error
         ? err.message
-        : 'Erro ao adicionar local. Tente novamente.';
+        : t('errors.errorAddingPlace');
       setError(errorMessage);
     }
-  }, [addPlace, places]);
+  }, [addPlace, places, t]);
 
   const handleError = useCallback((errorMessage: string) => {
     setError(errorMessage);
@@ -253,22 +263,22 @@ export default function DashboardPage() {
       } else {
         console.error('Erro na migração:', insertError);
         setIsMigrating(false);
-        setError('Erro ao salvar dados. Tente novamente.');
+        setError(t('errors.errorSavingData'));
       }
     } catch (err) {
       console.error('Erro ao migrar dados:', err);
       setIsMigrating(false);
-      setError('Erro ao salvar dados. Tente novamente.');
+      setError(t('errors.errorSavingData'));
     }
   };
 
   // Handler para o botão de salvar/login
   const handleSaveToCloud = () => {
     if (places.length === 0) {
-      setError('Adicione alguns lugares antes de fazer login!');
+      setError(t('errors.addCitiesBeforeLogin'));
       return;
     }
-    router.push('/login');
+    router.push(`/${locale}/login`);
   };
 
   if (isLoadingAuth) {
@@ -276,7 +286,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-gray-200 border-t-orange rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -289,13 +299,16 @@ export default function DashboardPage() {
         <header className="mb-6 sm:mb-8">
           {/* Mobile: Layout vertical */}
           <div className="lg:hidden">
-            <div className="text-center mb-4">
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                Travel Map
-              </h1>
-              <p className="text-sm text-gray-600">
-                Marque e visualize todos os lugares que você já visitou
-              </p>
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-center flex-1">
+                <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                  {t('dashboard.title')}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {t('dashboard.subtitle')}
+                </p>
+              </div>
+              <LanguageSwitcher />
             </div>
             
             {/* Modo Guest - Botão de Salvar */}
@@ -304,10 +317,10 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="text-xs font-medium text-orange/90 mb-1">
-                      🗺️ Modo sem login
+                      {t('auth.guestModeShort')}
                     </p>
                     <p className="text-xs text-gray-600">
-                      Faça login para sincronizar
+                      {t('auth.loginToSync')}
                     </p>
                   </div>
                   <button
@@ -315,7 +328,7 @@ export default function DashboardPage() {
                     disabled={places.length === 0}
                     className="px-4 py-2 bg-green text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
-                    {places.length > 0 ? '💾 Salvar' : 'Login'}
+                    {places.length > 0 ? `💾 ${t('common.save')}` : t('auth.login')}
                   </button>
                 </div>
               </div>
@@ -333,7 +346,7 @@ export default function DashboardPage() {
                     />
                   )}
                   <div className="text-left">
-                    <p className="text-xs text-gray-600">Olá,</p>
+                    <p className="text-xs text-gray-600">{t('auth.hello')}</p>
                     <p className="font-medium text-sm text-gray-900 truncate max-w-[150px]">
                       {user.user_metadata?.full_name || user.email}
                     </p>
@@ -343,7 +356,7 @@ export default function DashboardPage() {
                   onClick={handleLogout}
                   className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Sair
+                  {t('auth.logout')}
                 </button>
               </div>
             )}
@@ -351,12 +364,13 @@ export default function DashboardPage() {
 
           {/* Desktop: Layout horizontal original */}
           <div className="hidden lg:flex items-center justify-between">
+            <LanguageSwitcher />
             <div className="text-center flex-1">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Travel Map
+                {t('dashboard.title')}
               </h1>
               <p className="text-gray-600">
-                Marque e visualize todos os lugares que você já visitou
+                {t('dashboard.subtitle')}
               </p>
             </div>
             
@@ -366,10 +380,10 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-4">
                   <div>
                     <p className="text-sm font-medium text-orange/90 mb-1">
-                      🗺️ Modo sem login
+                      {t('auth.guestModeShort')}
                     </p>
                     <p className="text-xs text-gray-600">
-                      Seus dados estão salvos apenas neste dispositivo
+                      {t('auth.guestModeDescription')}
                     </p>
                   </div>
                   <button
@@ -377,7 +391,7 @@ export default function DashboardPage() {
                     disabled={places.length === 0}
                     className="px-6 py-2.5 bg-green text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
-                    {places.length > 0 ? '💾 Fazer Login e Salvar' : 'Fazer Login'}
+                    {places.length > 0 ? t('auth.loginAndSave') : t('auth.login')}
                   </button>
                 </div>
               </div>
@@ -387,7 +401,7 @@ export default function DashboardPage() {
             {user && (
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Olá,</p>
+                  <p className="text-sm text-gray-600">{t('auth.hello')}</p>
                   <p className="font-medium text-gray-900">
                     {user.user_metadata?.full_name || user.email}
                   </p>
@@ -403,7 +417,7 @@ export default function DashboardPage() {
                   onClick={handleLogout}
                   className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Sair
+                  {t('auth.logout')}
                 </button>
               </div>
             )}
@@ -413,7 +427,7 @@ export default function DashboardPage() {
         {/* Mensagem de erro */}
         {error && (
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            <p className="font-semibold">Erro:</p>
+            <p className="font-semibold">{t('common.error')}:</p>
             <p>{error}</p>
           </div>
         )}
@@ -427,13 +441,13 @@ export default function DashboardPage() {
         <div className="mb-6 max-w-6xl mx-auto">
           {isLoading ? (
             <div className="w-full h-full min-h-[400px] sm:min-h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
-              <p className="text-gray-500">Carregando lugares...</p>
+              <p className="text-gray-500">{t('dashboard.loadingPlaces')}</p>
             </div>
           ) : (
             <Map places={places} onMapClick={handleMapClick} />
           )}
           <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center px-2">
-            Clique no mapa para adicionar um local diretamente
+            {t('dashboard.clickMapToAdd')}
           </p>
 
           {/* Botões de ação */}
@@ -442,12 +456,12 @@ export default function DashboardPage() {
               onClick={() => setShowSaveModal(true)}
               className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-orange text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
             >
-              Salvar
+              {t('common.save')}
             </button>
             <button
               onClick={() => {
                 if (places.length === 0) {
-                  setError('Não há cidades para limpar.');
+                  setError(t('errors.noCitiesToClear'));
                   setTimeout(() => setError(null), 5000);
                   return;
                 }
@@ -455,7 +469,7 @@ export default function DashboardPage() {
               }}
               className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-green text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
             >
-              Limpar
+              {t('common.clear')}
             </button>
           </div>
         </div>
@@ -464,7 +478,7 @@ export default function DashboardPage() {
         <button
           onClick={scrollToList}
           className="lg:hidden fixed bottom-6 right-6 bg-orange text-white p-4 rounded-full shadow-lg hover:opacity-90 transition-all z-50 flex items-center justify-center"
-          aria-label="Ver lista de cidades"
+          aria-label={t('dashboard.scrollToCities')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -496,7 +510,7 @@ export default function DashboardPage() {
         {/* Rodapé */}
         <footer className="mt-8 text-center text-sm text-gray-500">
           <p>
-            Desenvolvido por{' '}
+            {t('dashboard.footerText')}{' '}
             <a
               href="https://github.com/eli-wojahn/"
               target="_blank"
@@ -520,14 +534,12 @@ export default function DashboardPage() {
         {/* Modal de Migração */}
         <Modal
           isOpen={isMigrating}
-          title="Salvando seus dados..."
+          title={t('modal.migratingSaving')}
           message={
             <div className="flex flex-col items-center justify-center py-4">
               <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4" />
               <p className="text-gray-600 text-center">
-                Estamos sincronizando seus lugares para a nuvem.
-                <br />
-                Aguarde um momento...
+                {t('modal.migratingMessage')}
               </p>
             </div>
           }
@@ -544,7 +556,7 @@ export default function DashboardPage() {
           message={
             <div className="flex flex-col items-center justify-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-                Parabéns, você visitou seu primeiro país!
+                {t('modal.congratulations')}
               </h2>
               <div className="w-96 h-96 flex items-center justify-center">
                 <DotLottieReact
@@ -568,10 +580,10 @@ export default function DashboardPage() {
 
         <Modal
           isOpen={showSaveModal}
-          title="Salvar Lugares"
-          message="Seus dados já estão sendo salvos automaticamente no Supabase e sincronizados entre todos os seus dispositivos!"
-          confirmText="Entendi"
-          cancelText="Fechar"
+          title={t('modal.savePlaces')}
+          message={t('modal.savePlacesMessage')}
+          confirmText={t('modal.understood')}
+          cancelText={t('common.close')}
           type="info"
           videoSrc="/save-map.mp4"
           onConfirm={() => setShowSaveModal(false)}
@@ -580,10 +592,10 @@ export default function DashboardPage() {
 
         <Modal
           isOpen={showClearModal}
-          title="Limpar Todas as Cidades"
-          message={`Tem certeza que deseja limpar todas as ${places.length} cidade(s) visitada(s)? Esta ação não pode ser desfeita.`}
-          confirmText="Limpar"
-          cancelText="Cancelar"
+          title={t('modal.clearPlaces')}
+          message={t('modal.clearPlacesMessage', { count: places.length })}
+          confirmText={t('common.clear')}
+          cancelText={t('common.cancel')}
           type="warning"
           videoSrc="/trash-bin.mp4"
           onConfirm={() => {
@@ -596,13 +608,13 @@ export default function DashboardPage() {
         {recentlyAddedPlace && (
           <Modal
             isOpen={showConfirmModal}
-            title="Cidade Adicionada!"
+            title={t('cities.cityAdded')}
             videoSrc="/city-added.mp4"
             message={
               <div className="space-y-2">
                 {recentlyAddedPlace.name.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/) && (
                   <p className="text-yellow-600 font-medium text-sm mb-2">
-                    ⚠️ O local adicionado não é uma cidade.
+                    {t('map.notACity')}
                   </p>
                 )}
                 <p className="font-semibold text-lg">{recentlyAddedPlace.name}</p>
@@ -617,7 +629,7 @@ export default function DashboardPage() {
                   </p>
                 )}
                 <p className="text-sm text-gray-500">
-                  Adicionada em: {new Date(recentlyAddedPlace.createdAt).toLocaleDateString('pt-BR', {
+                  {t('cities.addedOn')} {new Date(recentlyAddedPlace.createdAt).toLocaleDateString(locale === 'pt' ? 'pt-BR' : 'en-US', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -625,8 +637,8 @@ export default function DashboardPage() {
                 </p>
               </div>
             }
-            confirmText="OK"
-            cancelText="Remover"
+            confirmText={t('common.ok')}
+            cancelText={t('common.remove')}
             type="info"
             onConfirm={() => {
               setShowConfirmModal(false);

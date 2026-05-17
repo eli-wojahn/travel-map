@@ -1,13 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase-browser';
 import { useRouter } from 'next/navigation';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 /**
  * Página de Login com Google OAuth
  */
 export default function LoginPage() {
+  const t = useTranslations();
+  const locale = useLocale();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -18,16 +22,16 @@ export default function LoginPage() {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        router.push('/dashboard');
+        router.push(`/${locale}/dashboard`);
       }
     };
     checkAuth();
-  }, [router, supabase]);
+  }, [router, supabase, locale]);
 
   const handleContinueWithoutLogin = () => {
     // Marca no localStorage que está em modo guest
     localStorage.setItem('guest-mode', 'true');
-    router.push('/dashboard');
+    router.push(`/${locale}/dashboard`);
   };
 
   const handleGoogleLogin = async () => {
@@ -57,7 +61,7 @@ export default function LoginPage() {
         setIsLoading(false);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
+      setError(err instanceof Error ? err.message : t('errors.errorLogin'));
       setIsLoading(false);
     }
   };
@@ -67,11 +71,14 @@ export default function LoginPage() {
       <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
         {/* Logo/Header */}
         <div className="text-center mb-8">
+          <div className="flex justify-end mb-4">
+            <LanguageSwitcher />
+          </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            🌍 My Travel Map
+            🌍 {t('dashboard.title')}
           </h1>
           <p className="text-gray-600">
-            Marque todos os lugares que você já visitou
+            {t('dashboard.subtitle')}
           </p>
         </div>
 
@@ -88,7 +95,7 @@ export default function LoginPage() {
           className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg px-6 py-3 font-semibold hover:from-blue-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg mb-4"
         >
           <span>🗺️</span>
-          Continuar sem login
+          {t('auth.continueWithoutLogin')}
         </button>
 
         {/* Divider */}
@@ -97,7 +104,7 @@ export default function LoginPage() {
             <div className="w-full border-t border-gray-300" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">ou</span>
+            <span className="px-2 bg-white text-gray-500">{t('common.or')}</span>
           </div>
         </div>
 
@@ -110,7 +117,7 @@ export default function LoginPage() {
           {isLoading ? (
             <>
               <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
-              Conectando...
+              {t('auth.connecting')}
             </>
           ) : (
             <>
@@ -132,7 +139,7 @@ export default function LoginPage() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Continuar com Google
+              {t('auth.continueWithGoogle')}
             </>
           )}
         </button>
@@ -140,37 +147,37 @@ export default function LoginPage() {
         {/* Info about guest mode */}
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-800 mb-2">
-            <strong>🗺️ Modo sem login:</strong> Seus dados ficam salvos apenas neste dispositivo.
+            <strong>{t('auth.guestModeShort')}</strong> {t('auth.guestModeDescriptionLong')}
           </p>
           <p className="text-xs text-blue-700">
-            Faça login depois para sincronizar em todos os seus dispositivos!
+            {t('auth.loginToSyncLater')}
           </p>
         </div>
 
         {/* Features */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-sm text-gray-600 mb-4 text-center">
-            <strong>Benefícios de criar uma conta:</strong>
+            <strong>{t('authBenefits.title')}</strong>
           </p>
           <ul className="space-y-2 text-sm text-gray-600">
             <li className="flex items-start gap-2">
               <span className="text-green-600 mt-0.5">✓</span>
-              <span>Sincronizar seus lugares em todos os dispositivos</span>
+              <span>{t('authBenefits.sync')}</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-600 mt-0.5">✓</span>
-              <span>Backup automático dos seus dados</span>
+              <span>{t('authBenefits.backup')}</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-600 mt-0.5">✓</span>
-              <span>Compartilhar mapas com amigos (em breve)</span>
+              <span>{t('authBenefits.share')}</span>
             </li>
           </ul>
         </div>
 
         {/* Privacy */}
         <p className="mt-6 text-xs text-center text-gray-500">
-          Seus dados estão seguros. Não compartilhamos suas informações.
+          {t('authBenefits.privacy')}
         </p>
       </div>
     </div>

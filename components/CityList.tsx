@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Place } from '@/types';
 import { getCountryFlag } from '@/lib/countryFlags';
 import * as Collapsible from '@radix-ui/react-collapsible';
@@ -34,10 +35,14 @@ function SortableCityItem({
   place,
   index,
   onRemovePlace,
+  locale,
+  t,
 }: {
   place: Place;
   index: number;
   onRemovePlace: (id: string) => void;
+  locale: string;
+  t: any;
 }) {
   const {
     attributes,
@@ -65,21 +70,21 @@ function SortableCityItem({
       <div className="flex items-center gap-2 flex-1 min-w-0" {...attributes} {...listeners}>
         <div className="flex-1 min-w-0 cursor-grab active:cursor-grabbing">
           {/* NÚMERO + NOME */}
-<p className="font-medium text-gray-900 truncate">
-  {index + 1}. {place.name}
-</p>
+          <p className="font-medium text-gray-900 truncate">
+            {index + 1}. {place.name}
+          </p>
 
-{(place.country || place.state) && (
-  <p className="text-sm text-gray-600 flex items-center gap-1">
-    {place.country && <span>{getCountryFlag(place.country)}</span>}
-    <span>
-      {[place.state, place.country].filter(Boolean).join(', ')}
-    </span>
-  </p>
-)}
+          {(place.country || place.state) && (
+            <p className="text-sm text-gray-600 flex items-center gap-1">
+              {place.country && <span>{getCountryFlag(place.country)}</span>}
+              <span>
+                {[place.state, place.country].filter(Boolean).join(', ')}
+              </span>
+            </p>
+          )}
 
           <p className="text-xs text-gray-500 mt-1">
-            {new Date(place.createdAt).toLocaleDateString('pt-BR', {
+            {new Date(place.createdAt).toLocaleDateString(locale === 'pt' ? 'pt-BR' : 'en-US', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',
@@ -91,8 +96,8 @@ function SortableCityItem({
       <button
         onClick={() => onRemovePlace(place.id)}
         className="ml-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-        aria-label={`Remover ${place.name}`}
-        title={`Remover ${place.name}`}
+        aria-label={t('cities.removeAria', { name: place.name })}
+        title={t('cities.removeAria', { name: place.name })}
       >
         <svg
           width="20"
@@ -122,6 +127,8 @@ export default function CityList({
   onRemovePlace,
   onReorderPlaces,
 }: CityListProps) {
+  const t = useTranslations();
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -143,8 +150,8 @@ export default function CityList({
   if (places.length === 0) {
     return (
       <div className="text-center text-gray-500 py-8">
-        <p>Nenhuma cidade adicionada ainda.</p>
-        <p className="text-sm mt-2">Digite uma cidade ou clique no mapa para começar!</p>
+        <p>{t('cities.noCitiesYet')}</p>
+        <p className="text-sm mt-2">{t('cities.addCityToStart')}</p>
       </div>
     );
   }
@@ -153,7 +160,7 @@ export default function CityList({
     <div className="flex flex-col h-full">
       <Collapsible.Root open={open} onOpenChange={setOpen}>
         <div className="mb-4">
-          <h3 className="font-semibold text-lg">Cidades Visitadas</h3>
+          <h3 className="font-semibold text-lg">{t('cities.visitedCities')}</h3>
         </div>
         <Collapsible.Content
           forceMount
@@ -178,6 +185,8 @@ export default function CityList({
                   place={place}
                   index={index}
                   onRemovePlace={onRemovePlace}
+                  locale={locale}
+                  t={t}
                 />
               ))}
             </div>
@@ -189,8 +198,8 @@ export default function CityList({
           <Collapsible.Trigger asChild>
             <button
               className="w-10 h-10 flex items-center justify-center bg-green text-white rounded-lg hover:opacity-90 transition-opacity"
-              aria-label={open ? 'Recolher' : 'Expandir'}
-              title={open ? 'Recolher' : 'Expandir'}
+              aria-label={open ? t('cities.collapse') : t('cities.expand')}
+              title={open ? t('cities.collapse') : t('cities.expand')}
             >
               <svg
                 width="24"

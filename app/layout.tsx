@@ -1,25 +1,21 @@
-import type { Metadata } from 'next';
-import { Analytics } from '@vercel/analytics/next';
+import { getLocale } from 'next-intl/server';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Lugares do Mundo - Mapa de Cidades Visitadas',
-  description: 'Marque e visualize todos os lugares que você já visitou no mundo',
-  icons: {
-    icon: '/favicon.png',
-  },
-};
-
-export default function RootLayout({
+/**
+ * Root layout - provides HTML structure
+ * Locale-specific content is in [locale]/layout.tsx
+ */
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+
   return (
-    <html lang="pt-BR">
-      <body className="bg-background text-foreground min-h-screen font-sans">
+    <html lang={locale} suppressHydrationWarning>
+      <body className="bg-background text-foreground min-h-screen font-sans" suppressHydrationWarning>
         {children}
-        <Analytics />
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { geocodeCity } from '@/lib/geocoding';
 import { Place } from '@/types';
 
@@ -14,6 +15,7 @@ interface CityInputProps {
  * Faz geocodificação automática ao submeter o formulário
  */
 export default function CityInput({ onAddPlace, onError }: CityInputProps) {
+  const t = useTranslations();
   const [cityName, setCityName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -22,7 +24,7 @@ export default function CityInput({ onAddPlace, onError }: CityInputProps) {
     e.preventDefault();
     
     if (!cityName.trim()) {
-      onError?.('Por favor, digite o nome de uma cidade');
+      onError?.(t('errors.pleaseEnterCity'));
       inputRef.current?.focus();
       return;
     }
@@ -44,7 +46,7 @@ export default function CityInput({ onAddPlace, onError }: CityInputProps) {
       });
 
       if (!success) {
-        onError?.('Essa cidade já foi adicionada.');
+        onError?.(t('cities.cityAlreadyAdded'));
         shouldFocus = true;
       } else {
         // Limpa o input após adicionar
@@ -54,7 +56,7 @@ export default function CityInput({ onAddPlace, onError }: CityInputProps) {
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? error.message 
-        : 'Erro ao buscar a cidade. Tente novamente.';
+        : t('errors.errorSearching');
       onError?.(errorMessage);
       shouldFocus = true;
     } finally {
@@ -79,7 +81,7 @@ export default function CityInput({ onAddPlace, onError }: CityInputProps) {
         type="text"
         value={cityName}
         onChange={(e) => setCityName(e.target.value)}
-        placeholder="Digite o nome da cidade..."
+        placeholder={t('dashboard.searchPlaceholder')}
         className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         disabled={isLoading}
         autoFocus
@@ -93,7 +95,7 @@ export default function CityInput({ onAddPlace, onError }: CityInputProps) {
           e.preventDefault();
         }}
       >
-        {isLoading ? 'Buscando...' : 'Adicionar'}
+        {isLoading ? t('dashboard.searching') : t('dashboard.addCity')}
       </button>
     </form>
   );

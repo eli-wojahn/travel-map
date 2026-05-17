@@ -23,13 +23,13 @@ export async function geocodeCity(cityName: string): Promise<GeocodeResult> {
     });
     
     if (!response.ok) {
-      throw new Error(`Erro na API: ${response.status}`);
+      throw new Error(`API error: ${response.status}`);
     }
     
     const data = await response.json();
     
     if (!data || data.length === 0) {
-      throw new Error(`Cidade "${cityName}" não encontrada`);
+      throw new Error(`City "${cityName}" not found`);
     }
     
     const result = data[0];
@@ -54,7 +54,7 @@ export async function geocodeCity(cityName: string): Promise<GeocodeResult> {
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Erro desconhecido ao geocodificar a cidade');
+    throw new Error('Unknown error while geocoding the city');
   }
 }
 

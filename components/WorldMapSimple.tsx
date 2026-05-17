@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useCallback } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import { useTranslations } from 'next-intl';
 import { Place } from '@/types';
 
 const GEO_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
@@ -177,6 +178,7 @@ const COUNTRY_ALIASES: Record<string, string> = {
 };
 
 export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
+  const t = useTranslations('map');
   const visitedCountries = useMemo(() => {
     return Array.from(new Set(places.map((p) => p.country).filter(Boolean))) as string[];
   }, [places]);
@@ -256,7 +258,7 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
 
   return (
     <div className="bg-white rounded-lg border border-gray-300 p-4 shadow-sm">
-      <h3 className="font-semibold text-lg mb-4">Mapa (países coloridos por visitas)</h3>
+      <h3 className="font-semibold text-lg mb-4">{t('worldMapTitle')}</h3>
       <div className="w-full">
         <ComposableMap projectionConfig={{ scale: 145 }}>
           <Geographies geography={GEO_URL}>
@@ -297,11 +299,11 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded" style={{ backgroundColor: '#d87943' }} />
-            <span className="text-gray-700">País visitado</span>
+            <span className="text-gray-700">{t('visitedCountry')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-gray-300" />
-            <span className="text-gray-700">Sem visitas</span>
+            <span className="text-gray-700">{t('noVisits')}</span>
           </div>
         </div>
 
@@ -311,7 +313,9 @@ export default function WorldMapSimple({ places }: WorldMapSimpleProps) {
               onClick={() => setShowUnrecognized((s) => !s)}
               className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded text-sm"
             >
-              {showUnrecognized ? 'Esconder' : `Países não reconhecidos (${unrecognizedCountries.length})`}
+              {showUnrecognized
+                ? t('hideUnrecognizedCountries')
+                : t('unrecognizedCountries', { count: unrecognizedCountries.length })}
             </button>
 
             {showUnrecognized && (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase-browser';
 import { useRouter } from 'next/navigation';
 
@@ -9,8 +10,10 @@ import { useRouter } from 'next/navigation';
  * Processa o retorno do Google e redireciona
  */
 export default function AuthCallbackPage() {
+  const t = useTranslations();
+  const locale = useLocale();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('Processando autenticação...');
+  const [message, setMessage] = useState(t('auth.processingAuth'));
   const router = useRouter();
 
   useEffect(() => {
@@ -30,38 +33,38 @@ export default function AuthCallbackPage() {
 
           if (session?.user) {
             setStatus('success');
-            setMessage('Login realizado com sucesso! Redirecionando...');
+            setMessage(t('auth.loginSuccess'));
             
             // Aguarda 1 segundo para o usuário ver a mensagem
             setTimeout(() => {
-              router.push('/dashboard');
+              router.push(`/${locale}/dashboard`);
             }, 1000);
           } else {
-            throw new Error('Sessão não encontrada');
+            throw new Error(t('errors.sessionNotFound'));
           }
         } else {
           // Se não há token, verifica se já está autenticado
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
-            router.push('/dashboard');
+            router.push(`/${locale}/dashboard`);
           } else {
-            throw new Error('Token de acesso não encontrado');
+            throw new Error(t('errors.accessTokenNotFound'));
           }
         }
       } catch (err) {
         console.error('Erro no callback:', err);
         setStatus('error');
-        setMessage(err instanceof Error ? err.message : 'Erro ao processar autenticação');
+        setMessage(err instanceof Error ? err.message : t('errors.errorProcessingAuth'));
         
         // Redireciona para login após 3 segundos
         setTimeout(() => {
-          router.push('/login');
+          router.push(`/${locale}/login`);
         }, 3000);
       }
     };
 
     handleCallback();
-  }, [router]);
+  }, [locale, router, t]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange/10 via-green/10 to-blue-500/10 flex items-center justify-center p-4">
@@ -70,7 +73,7 @@ export default function AuthCallbackPage() {
           <>
             <div className="w-16 h-16 border-4 border-gray-200 border-t-orange rounded-full animate-spin mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Processando...
+              {t('auth.processing')}
             </h2>
             <p className="text-gray-600">{message}</p>
           </>
@@ -84,7 +87,7 @@ export default function AuthCallbackPage() {
               </svg>
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Sucesso!
+              {t('auth.successTitle')}
             </h2>
             <p className="text-gray-600">{message}</p>
           </>
@@ -98,11 +101,11 @@ export default function AuthCallbackPage() {
               </svg>
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Erro na autenticação
+              {t('auth.errorTitle')}
             </h2>
             <p className="text-gray-600 mb-4">{message}</p>
             <p className="text-sm text-gray-500">
-              Redirecionando para a página de login...
+              {t('auth.redirectingToLogin')}
             </p>
           </>
         )}
