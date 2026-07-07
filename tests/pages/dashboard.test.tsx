@@ -25,6 +25,7 @@ vi.mock('@/components/WorldMapSimple', () => ({ default: () => null }));
 vi.mock('@/components/Modal', () => ({ default: () => null }));
 vi.mock('@/components/ShareModal', () => ({ default: () => null }));
 vi.mock('@/components/LanguageSwitcher', () => ({ default: () => null }));
+vi.mock('@/components/ThemeSwitcher', () => ({ default: () => null }));
 
 // ---------------------------------------------------------------------------
 // Mock: next-intl
