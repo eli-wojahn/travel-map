@@ -1,7 +1,20 @@
 import { Page } from '@playwright/test';
 
-const PROJECT_REF = 'xeyntotoxjrjyperghmq';
-const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
+const DEFAULT_PROJECT_REF = 'xeyntotoxjrjyperghmq';
+
+export function getAuthStorageKey(supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL): string {
+  const projectRef = (() => {
+    if (!supabaseUrl) return DEFAULT_PROJECT_REF;
+
+    try {
+      return new URL(supabaseUrl).hostname.split('.')[0] || DEFAULT_PROJECT_REF;
+    } catch {
+      return DEFAULT_PROJECT_REF;
+    }
+  })();
+
+  return `sb-${projectRef}-auth-token`;
+}
 
 const FAKE_USER = {
   id: 'fake-user-e2e-id',
@@ -36,13 +49,14 @@ function toBase64Url(value: string): string {
  * um usuário logado, sem precisar passar pelo Google OAuth real.
  */
 export async function injectFakeSession(page: Page): Promise<void> {
+  const storageKey = getAuthStorageKey();
   const encodedSession = `base64-${toBase64Url(JSON.stringify(FAKE_SESSION))}`;
 
   // 1. Seta a sessão no cookie usado pelo createBrowserClient (@supabase/ssr)
   // Também mantém localStorage para compatibilidade com libs/fallbacks.
   await page.context().addCookies([
     {
-      name: STORAGE_KEY,
+      name: storageKey,
       value: encodedSession,
       domain: 'localhost',
       path: '/',
@@ -59,7 +73,7 @@ export async function injectFakeSession(page: Page): Promise<void> {
       // Remove a marca de modo guest caso esteja presente
       localStorage.removeItem('guest-mode');
     },
-    { key: STORAGE_KEY, session: FAKE_SESSION }
+    { key: storageKey, session: FAKE_SESSION }
   );
 
   // 3. Intercepta GET /auth/v1/user (chamado pelo getUser() do SDK)
