@@ -98,6 +98,7 @@ vi.mock('@/lib/storage', () => ({
 
 import { loadPlaces } from '@/lib/storage';
 import DashboardPage from '@/app/[locale]/dashboard/page';
+import { ThemeProvider } from '@/lib/theme';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -113,6 +114,14 @@ const localPlace = {
   longitude: -49.2,
   createdAt: '2024-01-01T00:00:00.000Z',
 };
+
+function renderDashboardPage() {
+  return render(
+    <ThemeProvider>
+      <DashboardPage />
+    </ThemeProvider>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Setup
@@ -160,7 +169,7 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 describe('DashboardPage – checkAuth', () => {
   it('define isLoadingAuth=false após verificação sem sessão', async () => {
-    render(<DashboardPage />);
+    renderDashboardPage();
     // O spinner de loading some após checkAuth (indicado pelo data-testid ausente ou pelo
     // conteúdo principal ser renderizado). Verificamos indiretamente que não crashou.
     await waitFor(() => {
@@ -174,7 +183,7 @@ describe('DashboardPage – checkAuth', () => {
       data: { session: { user: mockUser } },
     });
 
-    render(<DashboardPage />);
+    renderDashboardPage();
 
     await waitFor(() => {
       expect(localStorage.getItem('guest-mode')).toBeNull();
@@ -186,7 +195,7 @@ describe('DashboardPage – checkAuth', () => {
       data: { session: { user: mockUser } },
     });
 
-    render(<DashboardPage />);
+    renderDashboardPage();
 
     await waitFor(() => expect(mockDashboardAuth.getSession).toHaveBeenCalled());
     expect(mockDashboardFrom).not.toHaveBeenCalled();
@@ -205,7 +214,7 @@ describe('DashboardPage – migrateGuestData', () => {
   it('não chama Supabase quando localStorage está vazio', async () => {
     vi.mocked(loadPlaces).mockReturnValue([]);
 
-    render(<DashboardPage />);
+    renderDashboardPage();
 
     await waitFor(() => expect(mockDashboardAuth.getSession).toHaveBeenCalled());
     // Deve ter removido a flag mesmo assim
@@ -218,7 +227,7 @@ describe('DashboardPage – migrateGuestData', () => {
     // Coloca algo no localStorage para verificar que foi removido
     localStorage.setItem('lugares-do-mundo-places', JSON.stringify([localPlace]));
 
-    render(<DashboardPage />);
+    renderDashboardPage();
 
     // Aguarda migrateGuestData chamar from('places')
     await waitFor(() => {
@@ -242,7 +251,7 @@ describe('DashboardPage – migrateGuestData', () => {
       }),
     });
 
-    render(<DashboardPage />);
+    renderDashboardPage();
 
     // O erro aparece após isLoadingAuth=false (checkAuth completa com migrateGuestData falhando)
     const errorEl = await screen.findByText('errors.errorSavingData', {}, { timeout: 4000 });
@@ -254,7 +263,7 @@ describe('DashboardPage – handleLogout', () => {
   it('chama signOut e define guest-mode no localStorage', async () => {
     mockDashboardAuth.getSession.mockResolvedValue({ data: { session: null } });
 
-    render(<DashboardPage />);
+    renderDashboardPage();
     await waitFor(() => expect(mockDashboardAuth.getSession).toHaveBeenCalled());
 
     // Invoca diretamente o fluxo de logout para validar o efeito observável

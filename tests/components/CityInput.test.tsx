@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import CityInput from '@/components/CityInput';
@@ -125,7 +125,15 @@ describe('CityInput', () => {
       screen.getByRole('button', { name: 'dashboard.searching' })
     ).toBeDisabled();
 
-    // Resolve to clean up the pending promise
-    resolveGeocode(saoPauloResult);
+    // Resolve and wait for the final state update to avoid leaking async work.
+    await act(async () => {
+      resolveGeocode(saoPauloResult);
+    });
+
+    await vi.waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'dashboard.addCity' })
+      ).not.toBeDisabled();
+    });
   });
 });
