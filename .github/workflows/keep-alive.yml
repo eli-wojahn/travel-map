@@ -1,0 +1,35 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping keep-alive endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required configuration
+        env:
+          KEEP_ALIVE_URL: ${{ secrets.KEEP_ALIVE_URL }}
+          KEEP_ALIVE_SECRET: ${{ secrets.KEEP_ALIVE_SECRET }}
+        run: |
+          if [ -z "$KEEP_ALIVE_URL" ]; then
+            echo "Missing GitHub secret KEEP_ALIVE_URL"
+            exit 1
+          fi
+
+          if [ -z "$KEEP_ALIVE_SECRET" ]; then
+            echo "Missing GitHub secret KEEP_ALIVE_SECRET"
+            exit 1
+          fi
+
+      - name: Call keep-alive endpoint
+        env:
+          KEEP_ALIVE_URL: ${{ secrets.KEEP_ALIVE_URL }}
+          KEEP_ALIVE_SECRET: ${{ secrets.KEEP_ALIVE_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer $KEEP_ALIVE_SECRET" \
+            "$KEEP_ALIVE_URL"

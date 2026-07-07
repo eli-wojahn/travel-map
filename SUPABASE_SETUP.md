@@ -35,9 +35,14 @@
    NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-chave-publica-aqui
    SUPABASE_SERVICE_ROLE_KEY=sua-chave-privada-aqui
+   KEEP_ALIVE_SECRET=gere-um-token-longo-e-aleatorio
    ```
 
 4. ⚠️ **IMPORTANTE**: Nunca commite o `.env.local` (já está no .gitignore)
+
+5. O `KEEP_ALIVE_SECRET` deve existir também no provedor onde a aplicação está hospedada
+   - Na Vercel: **Project Settings** > **Environment Variables**
+   - Use o mesmo valor que será configurado no GitHub Actions
 
 ---
 
@@ -115,6 +120,56 @@ Para verificar se tudo está funcionando:
    - ✅ Proteger rotas com middleware
    - ✅ Migrar hook `usePlaces` para usar Supabase
    - ✅ Adicionar migração automática de localStorage
+
+### 6️⃣ Configurar Keep-Alive Automático
+
+Se quiser reduzir a chance de o projeto free-tier entrar em pausa por inatividade:
+
+1. Faça deploy da aplicação com a variável `KEEP_ALIVE_SECRET` configurada.
+2. No GitHub, abra **Settings** > **Secrets and variables** > **Actions**.
+3. Crie os secrets:
+   - `KEEP_ALIVE_URL`: URL completa da rota publicada, por exemplo `https://seu-dominio.com/api/keep-alive`
+   - `KEEP_ALIVE_SECRET`: o mesmo valor usado em `KEEP_ALIVE_SECRET` no deploy
+4. O workflow [`.github/workflows/keep-alive.yml`](.github/workflows/keep-alive.yml) roda diariamente às 12:00 UTC e também pode ser disparado manualmente.
+5. Para testar localmente ou manualmente:
+
+   ```bash
+   curl -H "Authorization: Bearer $KEEP_ALIVE_SECRET" http://localhost:3000/api/keep-alive
+   ```
+
+### Endpoint Implementado
+
+- Rota: `/api/keep-alive`
+- Autenticação: `Authorization: Bearer <KEEP_ALIVE_SECRET>` ou header `x-keep-alive-secret`
+- Comportamento: faz uma consulta leve na tabela `places` para registrar atividade no projeto Supabase
+
+### Checklist Operacional
+
+Use esta sequência para configurar sem erro:
+
+1. Gere ou reutilize um token forte para `KEEP_ALIVE_SECRET`.
+2. No provedor de deploy, adicione a env `KEEP_ALIVE_SECRET` com esse valor.
+3. Faça redeploy da aplicação para publicar a nova env.
+4. No GitHub, abra **Settings** > **Secrets and variables** > **Actions**.
+5. Crie `KEEP_ALIVE_URL` com a URL pública completa da rota, por exemplo `https://seu-dominio.com/api/keep-alive`.
+6. Crie `KEEP_ALIVE_SECRET` com exatamente o mesmo valor do deploy.
+7. Abra **Actions** > **Supabase Keep Alive** > **Run workflow** para testar manualmente.
+8. Confirme que o job terminou com sucesso e que a chamada retornou HTTP 200.
+
+### Como Validar
+
+Se quiser testar antes do cron:
+
+```bash
+curl -i -H "Authorization: Bearer $KEEP_ALIVE_SECRET" https://seu-dominio.com/api/keep-alive
+```
+
+Resultado esperado:
+
+- `200 OK`: keep-alive funcionando
+- `401 Unauthorized`: secret do request diferente do deploy
+- `500 KEEP_ALIVE_SECRET is not configured`: faltou configurar a env no deploy
+- `503 Supabase keep-alive failed`: a rota respondeu, mas a consulta no Supabase falhou
 
 ---
 

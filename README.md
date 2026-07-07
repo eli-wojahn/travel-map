@@ -39,6 +39,11 @@ Um mapa interativo onde você pode marcar e visualizar todos os lugares que já 
 3. **Acesse a aplicação:**
    Abra [http://localhost:3000](http://localhost:3000) no seu navegador
 
+4. **Se usar Supabase com keep-alive:**
+   - Copie [.env.local.example](/home/elias/elias/mapa/.env.local.example) para `.env.local`
+   - Preencha `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` e `KEEP_ALIVE_SECRET`
+   - Veja o passo a passo completo e o checklist operacional em [SUPABASE_SETUP.md](/home/elias/elias/mapa/SUPABASE_SETUP.md)
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -75,6 +80,15 @@ mapa/
    - Clique no botão "Remover" ao lado de qualquer cidade na lista
 
 ## 🔧 Configurações Importantes
+
+### Keep-Alive do Supabase
+
+O projeto inclui a rota [app/api/keep-alive/route.ts](/home/elias/elias/mapa/app/api/keep-alive/route.ts) para fazer um acesso leve ao Supabase e ajudar a evitar que projetos free-tier sejam marcados como inativos.
+
+- A rota exige `KEEP_ALIVE_SECRET`
+- O workflow agendado está em [.github/workflows/keep-alive.yml](/home/elias/elias/mapa/.github/workflows/keep-alive.yml)
+- No GitHub Actions, configure os secrets `KEEP_ALIVE_URL` e `KEEP_ALIVE_SECRET`
+- No deploy, configure a env `KEEP_ALIVE_SECRET` com o mesmo valor
 
 ### SSR e Leaflet
 
