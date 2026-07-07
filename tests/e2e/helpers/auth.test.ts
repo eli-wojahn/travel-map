@@ -8,7 +8,7 @@ describe('getAuthStorageKey', () => {
   });
 
   it('usa o project ref padrão quando a URL é inválida ou ausente', () => {
-    expect(getAuthStorageKey()).toBe('sb-xeyntotoxjrjyperghmq-auth-token');
+    expect(getAuthStorageKey('')).toBe('sb-xeyntotoxjrjyperghmq-auth-token');
     expect(getAuthStorageKey('not-a-url')).toBe('sb-xeyntotoxjrjyperghmq-auth-token');
   });
 });
