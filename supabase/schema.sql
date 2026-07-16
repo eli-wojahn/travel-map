@@ -8,6 +8,27 @@
 -- 1. Enable PostGIS extension for geospatial queries
 CREATE EXTENSION IF NOT EXISTS postgis;
 
+-- Harden PostGIS metadata table exposed in public schema
+-- Some projects cannot alter extension-owned tables; ignore that case gracefully.
+DO $$
+BEGIN
+  BEGIN
+    ALTER TABLE IF EXISTS public.spatial_ref_sys ENABLE ROW LEVEL SECURITY;
+    REVOKE ALL ON TABLE public.spatial_ref_sys FROM anon, authenticated;
+    DROP POLICY IF EXISTS spatial_ref_sys_service_role_all ON public.spatial_ref_sys;
+    CREATE POLICY spatial_ref_sys_service_role_all
+      ON public.spatial_ref_sys
+      FOR ALL
+      TO service_role
+      USING (true)
+      WITH CHECK (true);
+  EXCEPTION
+    WHEN insufficient_privilege THEN
+      RAISE NOTICE 'Skipping hardening for public.spatial_ref_sys (owner privileges required).';
+  END;
+END
+$$;
+
 -- 2. Create places table
 CREATE TABLE IF NOT EXISTS places (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -73,6 +94,11 @@ CREATE POLICY "Users can update own places"
 CREATE POLICY "Users can delete own places"
   ON places FOR DELETE
   USING (auth.uid() = user_id);
+
+-- Table privileges: block anon access and allow authenticated CRUD (RLS still enforced)
+REVOKE ALL ON TABLE places FROM anon;
+REVOKE ALL ON TABLE places FROM authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE places TO authenticated;
 
 -- 7. Create function to find nearby places
 CREATE OR REPLACE FUNCTION nearby_places(
@@ -146,6 +172,25 @@ CREATE TABLE IF NOT EXISTS geocoding_cache (
 
 CREATE INDEX IF NOT EXISTS idx_geocoding_cache_query ON geocoding_cache(query);
 CREATE INDEX IF NOT EXISTS idx_geocoding_cache_expires ON geocoding_cache(expires_at);
+
+-- Harden cache table access in public schema
+DO $$
+BEGIN
+  IF to_regclass('public.geocoding_cache') IS NOT NULL THEN
+    ALTER TABLE public.geocoding_cache ENABLE ROW LEVEL SECURITY;
+    REVOKE ALL ON TABLE public.geocoding_cache FROM anon, authenticated;
+    DROP POLICY IF EXISTS geocoding_cache_service_role_all ON public.geocoding_cache;
+    CREATE POLICY geocoding_cache_service_role_all
+      ON public.geocoding_cache
+      FOR ALL
+      TO service_role
+      USING (true)
+      WITH CHECK (true);
+  ELSE
+    RAISE NOTICE 'Skipping hardening for public.geocoding_cache (table not found).';
+  END IF;
+END
+$$;
 
 -- Auto-delete expired cache entries (runs daily)
 CREATE OR REPLACE FUNCTION delete_expired_geocoding_cache()

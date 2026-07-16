@@ -104,6 +104,27 @@ Após deploy, adicione a URL de produção:
 
 ---
 
+## 🛡️ RLS Hardening (Supabase)
+
+### Resultado da Auditoria
+
+- [x] `public.geocoding_cache`: RLS habilitado, sem grants para `anon`, status `PASS`
+- [x] `public.places`: RLS habilitado, sem grants para `anon`, status `PASS`
+- [ ] `public.spatial_ref_sys`: tabela da extensão PostGIS, alteração de owner não disponível no projeto
+
+### Exceção Técnica Registrada
+
+`public.spatial_ref_sys` é uma tabela de metadata da extensão PostGIS e pode ser gerenciada por owner do sistema. Em ambientes Supabase onde o projeto não é owner dessa tabela, comandos de hardening (ALTER/REVOKE/POLICY) podem falhar por privilégio insuficiente. O risco funcional para dados do app foi mitigado com `PASS` nas tabelas de aplicação.
+
+### Evidências e Scripts
+
+- Hardening inicial: `supabase/rls_hardening.sql`
+- Hardening de privilégios da tabela principal: `supabase/places_privileges_hardening.sql`
+- Validação técnica: `supabase/rls_validation.sql`
+- Auditoria focada em tabelas da aplicação: `supabase/rls_audit_app_tables.sql`
+
+---
+
 ## 🆘 Em Caso de Exposição Acidental
 
 Se por acaso você commitou credenciais:
