@@ -130,7 +130,7 @@ Se quiser reduzir a chance de o projeto free-tier entrar em pausa por inatividad
 3. Crie os secrets:
    - `KEEP_ALIVE_URL`: URL completa da rota publicada, por exemplo `https://seu-dominio.com/api/keep-alive`
    - `KEEP_ALIVE_SECRET`: o mesmo valor usado em `KEEP_ALIVE_SECRET` no deploy
-4. O workflow [`.github/workflows/keep-alive.yml`](.github/workflows/keep-alive.yml) roda diariamente às 12:00 UTC e também pode ser disparado manualmente.
+4. O workflow [`.github/workflows/keep-alive.yml`](.github/workflows/keep-alive.yml) roda a cada 6 horas e também pode ser disparado manualmente.
 5. Para testar localmente ou manualmente:
 
    ```bash
@@ -140,7 +140,7 @@ Se quiser reduzir a chance de o projeto free-tier entrar em pausa por inatividad
 ### Endpoint Implementado
 
 - Rota: `/api/keep-alive`
-- Autenticação: `Authorization: Bearer <KEEP_ALIVE_SECRET>` ou header `x-keep-alive-secret`
+- Autenticação: `Authorization: Bearer <KEEP_ALIVE_SECRET>` (ou `CRON_SECRET`) e também suporta header `x-keep-alive-secret`
 - Comportamento: faz uma consulta leve na tabela `places` para registrar atividade no projeto Supabase
 
 ### Checklist Operacional
@@ -156,6 +156,12 @@ Use esta sequência para configurar sem erro:
 7. Abra **Actions** > **Supabase Keep Alive** > **Run workflow** para testar manualmente.
 8. Confirme que o job terminou com sucesso e que a chamada retornou HTTP 200.
 
+### Recomendação Importante (Confiabilidade)
+
+- Workflows agendados do GitHub podem ser desativados automaticamente em repositórios sem atividade por longos períodos.
+- Para reduzir esse risco, configure também um segundo agendador externo (ex.: cron do provedor de deploy ou UptimeRobot) chamando `/api/keep-alive` com o mesmo secret.
+- Em deploys na Vercel, você pode usar `CRON_SECRET` e agendar chamadas internas para a rota sem depender apenas do GitHub Actions.
+
 ### Como Validar
 
 Se quiser testar antes do cron:
@@ -168,7 +174,8 @@ Resultado esperado:
 
 - `200 OK`: keep-alive funcionando
 - `401 Unauthorized`: secret do request diferente do deploy
-- `500 KEEP_ALIVE_SECRET is not configured`: faltou configurar a env no deploy
+- `500 No keep-alive secret is configured`: faltou configurar `KEEP_ALIVE_SECRET` ou `CRON_SECRET`
+- `500 Supabase admin credentials are not configured`: faltou `SUPABASE_SERVICE_ROLE_KEY` no deploy
 - `503 Supabase keep-alive failed`: a rota respondeu, mas a consulta no Supabase falhou
 
 ---

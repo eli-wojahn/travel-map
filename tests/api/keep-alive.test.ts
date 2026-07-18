@@ -13,11 +13,10 @@ vi.mock('next/server', () => ({
 const limitMock = vi.fn();
 const selectMock = vi.fn(() => ({ limit: limitMock }));
 const fromMock = vi.fn(() => ({ select: selectMock }));
+const createClientMock = vi.fn(() => ({ from: fromMock }));
 
-vi.mock('@/lib/supabase', () => ({
-  supabaseAdmin: {
-    from: fromMock,
-  },
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: createClientMock,
 }));
 
 type MockResponse = { status: number; _data: unknown; json: () => Promise<unknown> };
@@ -38,26 +37,30 @@ function makeRequest(secret?: string, headerName = 'authorization') {
 
 describe('GET /api/keep-alive', () => {
   let GET: (request: Request) => Promise<MockResponse>;
-  const originalEnv = process.env.KEEP_ALIVE_SECRET;
 
   beforeEach(async () => {
     vi.resetModules();
     process.env.KEEP_ALIVE_SECRET = 'test-secret';
+    process.env.CRON_SECRET = '';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
     limitMock.mockReset();
     selectMock.mockClear();
     fromMock.mockClear();
+    createClientMock.mockClear();
 
     const mod = await import('@/app/api/keep-alive/route');
     GET = mod.GET as unknown as typeof GET;
   });
 
-  it('returns 500 when keep-alive secret is not configured', async () => {
+  it('returns 500 when no keep-alive secret is configured', async () => {
     delete process.env.KEEP_ALIVE_SECRET;
+    delete process.env.CRON_SECRET;
 
     const res = await GET(makeRequest('test-secret'));
 
     expect(res.status).toBe(500);
-    expect((res._data as any).error).toMatch(/not configured/i);
+    expect((res._data as any).error).toMatch(/no keep-alive secret/i);
   });
 
   it('returns 401 when request is missing a valid secret', async () => {
@@ -85,6 +88,15 @@ describe('GET /api/keep-alive', () => {
 
     expect(res.status).toBe(503);
     expect((res._data as any).details).toMatch(/relation places/i);
+  });
+
+  it('returns 500 when Supabase admin credentials are missing', async () => {
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    const res = await GET(makeRequest('test-secret'));
+
+    expect(res.status).toBe(500);
+    expect((res._data as any).error).toMatch(/admin credentials/i);
   });
 
   it('returns 200 when the Supabase probe succeeds', async () => {

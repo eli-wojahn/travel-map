@@ -89,6 +89,9 @@ O projeto inclui a rota [app/api/keep-alive/route.ts](/home/elias/elias/mapa/app
 - O workflow agendado está em [.github/workflows/keep-alive.yml](/home/elias/elias/mapa/.github/workflows/keep-alive.yml)
 - No GitHub Actions, configure os secrets `KEEP_ALIVE_URL` e `KEEP_ALIVE_SECRET`
 - No deploy, configure a env `KEEP_ALIVE_SECRET` com o mesmo valor
+- Configure também `SUPABASE_SERVICE_ROLE_KEY` no deploy (obrigatória para probe admin)
+- O workflow roda a cada 6h com retry automático
+- Recomendado: ter um segundo agendador externo (cron do deploy/UptimeRobot), pois jobs agendados do GitHub podem ser desativados em repositórios sem atividade
 
 ### SSR e Leaflet
 

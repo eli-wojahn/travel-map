@@ -2,13 +2,14 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    - cron: '0 12 * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
   ping:
     name: Ping keep-alive endpoint
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
       - name: Validate required configuration
         env:
@@ -30,6 +31,28 @@ jobs:
           KEEP_ALIVE_URL: ${{ secrets.KEEP_ALIVE_URL }}
           KEEP_ALIVE_SECRET: ${{ secrets.KEEP_ALIVE_SECRET }}
         run: |
-          curl --fail-with-body --silent --show-error \
-            -H "Authorization: Bearer $KEEP_ALIVE_SECRET" \
-            "$KEEP_ALIVE_URL"
+          for attempt in 1 2 3; do
+            echo "Attempt $attempt/3"
+
+            status_code=$(curl --silent --show-error --location --max-time 20 \
+              -H "Authorization: Bearer $KEEP_ALIVE_SECRET" \
+              -H "User-Agent: LugaresDoMundoKeepAlive/1.0" \
+              -o response.json \
+              -w "%{http_code}" \
+              "$KEEP_ALIVE_URL" || true)
+
+            echo "HTTP status: $status_code"
+            cat response.json || true
+
+            if [ "$status_code" = "200" ]; then
+              echo "Keep-alive succeeded"
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+
+          echo "Keep-alive failed after 3 attempts"
+          exit 1
