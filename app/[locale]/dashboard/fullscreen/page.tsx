@@ -47,6 +47,7 @@ export default function FullscreenMapPage() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(null);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
+  const [focusAddedPlaceId, setFocusAddedPlaceId] = useState<string | undefined>(undefined);
   const nextLocale = locale === 'pt' ? 'en' : 'pt';
   const localeFlag = locale === 'pt' ? '🇧🇷' : '🇺🇸';
 
@@ -58,6 +59,7 @@ export default function FullscreenMapPage() {
   const showAddedPlaceFlow = useCallback(
     (addedPlace: Place, isFirstPlace: boolean) => {
       setRecentlyAddedPlace(addedPlace);
+      setFocusAddedPlaceId(addedPlace.id);
       const isCoordinate = addedPlace.name.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/);
 
       if (isFirstPlace && !isCoordinate) {
@@ -145,6 +147,7 @@ export default function FullscreenMapPage() {
           initialCenter={[50, 10]}
           initialZoom={5}
           focusMode="majority-continent"
+          focusAddedPlaceId={focusAddedPlaceId}
           locateUserRequestId={locateUserRequestId}
           onLocateUserResult={(result) => {
             setIsLocatingUser(false);

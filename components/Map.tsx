@@ -45,19 +45,88 @@ function getContinentFromCoordinates(
   return 'Other';
 }
 
-type Continent = 'Europe' | 'Americas' | 'Asia' | 'Africa' | 'Oceania' | 'Other';
+function normalizeCountry(country?: string): string | null {
+  if (!country) return null;
+  const normalized = country.trim().toLowerCase();
+  return normalized.length > 0 ? normalized : null;
+}
 
 function MapUpdater({
   places,
   focusMode = 'fit-all',
+  focusAddedPlaceId,
 }: {
   places: Place[];
   focusMode?: 'fit-all' | 'majority-continent';
+  focusAddedPlaceId?: string;
 }) {
   const map = useMap();
+  const hasAppliedSmartFocusRef = useRef(false);
+  const lastFocusedAddedPlaceIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (places.length === 0) return;
+
+    if (focusAddedPlaceId && lastFocusedAddedPlaceIdRef.current !== focusAddedPlaceId) {
+      const addedPlace = places.find((place) => place.id === focusAddedPlaceId);
+
+      if (addedPlace) {
+        lastFocusedAddedPlaceIdRef.current = focusAddedPlaceId;
+        const nextZoom = Math.min(map.getZoom() + 1, 10);
+
+        map.flyTo([addedPlace.latitude, addedPlace.longitude], nextZoom, {
+          animate: true,
+          duration: 0.9,
+        });
+        return;
+      }
+    }
+
+    if (focusMode === 'majority-continent') {
+      if (hasAppliedSmartFocusRef.current) {
+        return;
+      }
+
+      const groupedByRegion = new globalThis.Map<string, Place[]>();
+
+      places.forEach((place) => {
+        const countryKey = normalizeCountry(place.country);
+        const regionKey = countryKey ?? `continent:${getContinentFromCoordinates(place.latitude, place.longitude)}`;
+        const current = groupedByRegion.get(regionKey) ?? [];
+        current.push(place);
+        groupedByRegion.set(regionKey, current);
+      });
+
+      // Começa pela cidade mais recente (places[0]) e só troca se encontrar grupo maior.
+      const firstCountryKey = normalizeCountry(places[0].country);
+      let dominantRegion = firstCountryKey ?? `continent:${getContinentFromCoordinates(places[0].latitude, places[0].longitude)}`;
+      let dominantCount = groupedByRegion.get(dominantRegion)?.length ?? 0;
+
+      groupedByRegion.forEach((list, regionKey) => {
+        if (list.length > dominantCount) {
+          dominantRegion = regionKey;
+          dominantCount = list.length;
+        }
+      });
+
+      const dominantPlaces = groupedByRegion.get(dominantRegion) ?? [];
+      if (dominantPlaces.length > 0) {
+        hasAppliedSmartFocusRef.current = true;
+        const avgLat =
+          dominantPlaces.reduce((sum, place) => sum + place.latitude, 0) / dominantPlaces.length;
+        const avgLng =
+          dominantPlaces.reduce((sum, place) => sum + place.longitude, 0) / dominantPlaces.length;
+
+        // Recentraliza sem alterar o zoom atual (evita zoom out automático).
+        map.flyTo([avgLat, avgLng], map.getZoom(), {
+          animate: true,
+          duration: 1,
+        });
+        return;
+      }
+
+      hasAppliedSmartFocusRef.current = true;
+    }
 
     // Se houver apenas um lugar, centraliza nele
     if (places.length === 1) {
@@ -65,44 +134,12 @@ function MapUpdater({
       return;
     }
 
-    if (focusMode === 'majority-continent') {
-      const groupedByContinent = new globalThis.Map<Continent, Place[]>();
-
-      places.forEach((place) => {
-        const continent = getContinentFromCoordinates(place.latitude, place.longitude);
-        const current = groupedByContinent.get(continent) ?? [];
-        current.push(place);
-        groupedByContinent.set(continent, current);
-      });
-
-      // Começa pela cidade mais recente (places[0]) e só troca se encontrar grupo maior.
-      let dominantContinent = getContinentFromCoordinates(places[0].latitude, places[0].longitude);
-      let dominantCount = groupedByContinent.get(dominantContinent)?.length ?? 0;
-
-      groupedByContinent.forEach((list, continent) => {
-        if (list.length > dominantCount) {
-          dominantContinent = continent;
-          dominantCount = list.length;
-        }
-      });
-
-      const dominantPlaces = groupedByContinent.get(dominantContinent) ?? [];
-
-      if (dominantPlaces.length >= 2) {
-        const dominantBounds = L.latLngBounds(
-          dominantPlaces.map((place) => [place.latitude, place.longitude])
-        );
-        map.fitBounds(dominantBounds, { padding: [50, 50] });
-        return;
-      }
-    }
-
     // Fallback: ajusta o zoom para mostrar todos
     const bounds = L.latLngBounds(
       places.map((place) => [place.latitude, place.longitude])
     );
     map.fitBounds(bounds, { padding: [50, 50] });
-  }, [focusMode, places, map]);
+  }, [focusAddedPlaceId, focusMode, places, map]);
 
   return null;
 }
@@ -129,6 +166,7 @@ interface MapProps {
   initialCenter?: [number, number];
   initialZoom?: number;
   focusMode?: 'fit-all' | 'majority-continent';
+  focusAddedPlaceId?: string;
   locateUserRequestId?: number;
   onLocateUserResult?: (result: {
     ok: boolean;
@@ -219,6 +257,7 @@ export default function Map({
   initialCenter,
   initialZoom,
   focusMode = 'fit-all',
+  focusAddedPlaceId,
   locateUserRequestId,
   onLocateUserResult,
 }: MapProps) {
@@ -280,7 +319,11 @@ export default function Map({
         />
 
         {/* Atualizador de visualização */}
-        <MapUpdater places={places} focusMode={focusMode} />
+        <MapUpdater
+          places={places}
+          focusMode={focusMode}
+          focusAddedPlaceId={focusAddedPlaceId}
+        />
 
         {/* Marcadores para cada lugar */}
         {places.map((place) => (
