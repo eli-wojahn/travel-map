@@ -45,6 +45,8 @@ function getContinentFromCoordinates(
   return 'Other';
 }
 
+type Continent = 'Europe' | 'Americas' | 'Asia' | 'Africa' | 'Oceania' | 'Other';
+
 function MapUpdater({
   places,
   focusMode = 'fit-all',
@@ -64,7 +66,7 @@ function MapUpdater({
     }
 
     if (focusMode === 'majority-continent') {
-      const groupedByContinent = new globalThis.Map<string, Place[]>();
+      const groupedByContinent = new globalThis.Map<Continent, Place[]>();
 
       places.forEach((place) => {
         const continent = getContinentFromCoordinates(place.latitude, place.longitude);
