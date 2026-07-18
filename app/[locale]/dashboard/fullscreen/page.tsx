@@ -142,6 +142,9 @@ export default function FullscreenMapPage() {
           places={places}
           onMapClick={handleMapClick}
           fullscreen
+          initialCenter={[50, 10]}
+          initialZoom={5}
+          focusMode="majority-continent"
           locateUserRequestId={locateUserRequestId}
           onLocateUserResult={(result) => {
             setIsLocatingUser(false);

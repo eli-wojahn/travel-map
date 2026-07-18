@@ -23,7 +23,35 @@ if (typeof window !== 'undefined') {
 /**
  * Componente interno para ajustar a visualização do mapa quando os lugares mudam
  */
-function MapUpdater({ places }: { places: Place[] }) {
+function getContinentFromCoordinates(
+  lat: number,
+  lng: number
+): 'Europe' | 'Americas' | 'Asia' | 'Africa' | 'Oceania' | 'Other' {
+  // Europe (aproximação por bounding box)
+  if (lat >= 35 && lat <= 72 && lng >= -25 && lng <= 45) return 'Europe';
+
+  // Asia
+  if (lat >= -10 && lat <= 80 && lng >= 45 && lng <= 180) return 'Asia';
+
+  // Africa
+  if (lat >= -35 && lat <= 38 && lng >= -20 && lng <= 55) return 'Africa';
+
+  // Oceania
+  if (lat >= -50 && lat <= 10 && lng >= 110 && lng <= 180) return 'Oceania';
+
+  // Americas (Norte + Central + Sul)
+  if (lat >= -60 && lat <= 85 && lng >= -170 && lng <= -25) return 'Americas';
+
+  return 'Other';
+}
+
+function MapUpdater({
+  places,
+  focusMode = 'fit-all',
+}: {
+  places: Place[];
+  focusMode?: 'fit-all' | 'majority-continent';
+}) {
   const map = useMap();
 
   useEffect(() => {
@@ -35,12 +63,44 @@ function MapUpdater({ places }: { places: Place[] }) {
       return;
     }
 
-    // Se houver múltiplos lugares, ajusta o zoom para mostrar todos
+    if (focusMode === 'majority-continent') {
+      const groupedByContinent = new globalThis.Map<string, Place[]>();
+
+      places.forEach((place) => {
+        const continent = getContinentFromCoordinates(place.latitude, place.longitude);
+        const current = groupedByContinent.get(continent) ?? [];
+        current.push(place);
+        groupedByContinent.set(continent, current);
+      });
+
+      // Começa pela cidade mais recente (places[0]) e só troca se encontrar grupo maior.
+      let dominantContinent = getContinentFromCoordinates(places[0].latitude, places[0].longitude);
+      let dominantCount = groupedByContinent.get(dominantContinent)?.length ?? 0;
+
+      groupedByContinent.forEach((list, continent) => {
+        if (list.length > dominantCount) {
+          dominantContinent = continent;
+          dominantCount = list.length;
+        }
+      });
+
+      const dominantPlaces = groupedByContinent.get(dominantContinent) ?? [];
+
+      if (dominantPlaces.length >= 2) {
+        const dominantBounds = L.latLngBounds(
+          dominantPlaces.map((place) => [place.latitude, place.longitude])
+        );
+        map.fitBounds(dominantBounds, { padding: [50, 50] });
+        return;
+      }
+    }
+
+    // Fallback: ajusta o zoom para mostrar todos
     const bounds = L.latLngBounds(
       places.map((place) => [place.latitude, place.longitude])
     );
     map.fitBounds(bounds, { padding: [50, 50] });
-  }, [places, map]);
+  }, [focusMode, places, map]);
 
   return null;
 }
@@ -64,6 +124,9 @@ interface MapProps {
   places: Place[];
   onMapClick?: (lat: number, lng: number) => void;
   fullscreen?: boolean;
+  initialCenter?: [number, number];
+  initialZoom?: number;
+  focusMode?: 'fit-all' | 'majority-continent';
   locateUserRequestId?: number;
   onLocateUserResult?: (result: {
     ok: boolean;
@@ -151,6 +214,9 @@ export default function Map({
   places,
   onMapClick,
   fullscreen = false,
+  initialCenter,
+  initialZoom,
+  focusMode = 'fit-all',
   locateUserRequestId,
   onLocateUserResult,
 }: MapProps) {
@@ -164,8 +230,9 @@ export default function Map({
   }, []);
 
   // Coordenadas padrão (centro do mundo)
-  const defaultCenter: [number, number] = [20, 0];
-  const defaultZoom = 2;
+  const minZoom = 2;
+  const defaultCenter: [number, number] = initialCenter ?? [20, 0];
+  const defaultZoom = initialZoom ?? minZoom;
   const wrapperClassName = fullscreen
     ? 'w-full h-[100dvh]'
     : 'w-full rounded-lg overflow-hidden border border-gray-300 h-[400px] sm:h-[600px]';
@@ -190,7 +257,7 @@ export default function Map({
       <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
-        minZoom={2}
+        minZoom={minZoom}
         worldCopyJump={true}
         className="h-full w-full"
         scrollWheelZoom={true}
@@ -211,7 +278,7 @@ export default function Map({
         />
 
         {/* Atualizador de visualização */}
-        <MapUpdater places={places} />
+        <MapUpdater places={places} focusMode={focusMode} />
 
         {/* Marcadores para cada lugar */}
         {places.map((place) => (
