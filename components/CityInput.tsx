@@ -8,13 +8,14 @@ import { Place } from '@/types';
 interface CityInputProps {
   onAddPlace: (place: Omit<Place, 'id' | 'createdAt'>) => Promise<boolean> | boolean;
   onError?: (error: string) => void;
+  compact?: boolean;
 }
 
 /**
  * Componente para adicionar uma cidade através de input de texto
  * Faz geocodificação automática ao submeter o formulário
  */
-export default function CityInput({ onAddPlace, onError }: CityInputProps) {
+export default function CityInput({ onAddPlace, onError, compact = false }: CityInputProps) {
   const t = useTranslations();
   const [cityName, setCityName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -82,14 +83,17 @@ export default function CityInput({ onAddPlace, onError }: CityInputProps) {
         value={cityName}
         onChange={(e) => setCityName(e.target.value)}
         placeholder={t('dashboard.searchPlaceholder')}
-        className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className={compact
+          ? 'flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none'
+          : 'flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none'}
         disabled={isLoading}
-        autoFocus
       />
       <button
         type="submit"
         disabled={isLoading || !cityName.trim()}
-        className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+        className={compact
+          ? 'lg:hidden px-3 sm:px-4 py-1.5 sm:py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors whitespace-nowrap'
+          : 'lg:hidden px-4 sm:px-6 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors whitespace-nowrap'}
         onMouseDown={(e) => {
           // Previne que o botão roube o foco do input
           e.preventDefault();

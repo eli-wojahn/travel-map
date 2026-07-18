@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -64,6 +64,81 @@ interface MapProps {
   places: Place[];
   onMapClick?: (lat: number, lng: number) => void;
   fullscreen?: boolean;
+  locateUserRequestId?: number;
+  onLocateUserResult?: (result: {
+    ok: boolean;
+    error?: 'UNSUPPORTED' | 'PERMISSION_DENIED' | 'POSITION_UNAVAILABLE' | 'TIMEOUT' | 'UNKNOWN';
+  }) => void;
+}
+
+function UserLocationHandler({
+  locateUserRequestId,
+  onLocateUserResult,
+}: {
+  locateUserRequestId?: number;
+  onLocateUserResult?: (result: {
+    ok: boolean;
+    error?: 'UNSUPPORTED' | 'PERMISSION_DENIED' | 'POSITION_UNAVAILABLE' | 'TIMEOUT' | 'UNKNOWN';
+  }) => void;
+}) {
+  const map = useMap();
+  const lastProcessedRequestRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!locateUserRequestId || locateUserRequestId <= 0) {
+      return;
+    }
+
+    if (lastProcessedRequestRef.current === locateUserRequestId) {
+      return;
+    }
+
+    lastProcessedRequestRef.current = locateUserRequestId;
+
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      onLocateUserResult?.({ ok: false, error: 'UNSUPPORTED' });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        map.flyTo([lat, lng], 13, {
+          animate: true,
+          duration: 1.2,
+        });
+
+        onLocateUserResult?.({ ok: true });
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          onLocateUserResult?.({ ok: false, error: 'PERMISSION_DENIED' });
+          return;
+        }
+
+        if (error.code === error.POSITION_UNAVAILABLE) {
+          onLocateUserResult?.({ ok: false, error: 'POSITION_UNAVAILABLE' });
+          return;
+        }
+
+        if (error.code === error.TIMEOUT) {
+          onLocateUserResult?.({ ok: false, error: 'TIMEOUT' });
+          return;
+        }
+
+        onLocateUserResult?.({ ok: false, error: 'UNKNOWN' });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  }, [locateUserRequestId, map, onLocateUserResult]);
+
+  return null;
 }
 
 /**
@@ -72,7 +147,13 @@ interface MapProps {
  * IMPORTANTE: Este componente deve ser renderizado apenas no cliente
  * devido às dependências do Leaflet que não funcionam com SSR
  */
-export default function Map({ places, onMapClick, fullscreen = false }: MapProps) {
+export default function Map({
+  places,
+  onMapClick,
+  fullscreen = false,
+  locateUserRequestId,
+  onLocateUserResult,
+}: MapProps) {
   const t = useTranslations('map');
   const locale = useLocale();
   const [isMounted, setIsMounted] = useState(false);
@@ -122,6 +203,12 @@ export default function Map({ places, onMapClick, fullscreen = false }: MapProps
 
         {/* Handler de cliques no mapa */}
         <MapClickHandler onMapClick={onMapClick} />
+
+        {/* Handler para centralizar na localização atual do usuário */}
+        <UserLocationHandler
+          locateUserRequestId={locateUserRequestId}
+          onLocateUserResult={onLocateUserResult}
+        />
 
         {/* Atualizador de visualização */}
         <MapUpdater places={places} />
