@@ -6,6 +6,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePlaces } from '@/hooks/usePlaces';
 import CityInput from '@/components/CityInput';
+import Modal from '@/components/Modal';
+import { getCountryFlag } from '@/lib/countryFlags';
+import { Place } from '@/types';
 
 function MapLoading() {
   const t = useTranslations('map');
@@ -22,6 +25,11 @@ const Map = dynamic(() => import('@/components/Map'), {
   loading: () => <MapLoading />,
 });
 
+const DotLottieReact = dynamic(
+  () => import('@lottiefiles/dotlottie-react').then((mod) => mod.DotLottieReact),
+  { ssr: false }
+);
+
 /**
  * Tela dedicada ao mapa em modo full screen.
  */
@@ -30,16 +38,42 @@ export default function FullscreenMapPage() {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const { places, isLoading, addPlace } = usePlaces();
+  const { places, isLoading, addPlace, removePlace } = usePlaces();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isLocatingUser, setIsLocatingUser] = useState(false);
   const [locateUserRequestId, setLocateUserRequestId] = useState(0);
+  const [showAnimationModal, setShowAnimationModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(null);
+  const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
   const nextLocale = locale === 'pt' ? 'en' : 'pt';
   const localeFlag = locale === 'pt' ? '🇧🇷' : '🇺🇸';
+
+  const openErrorModal = useCallback((message: string) => {
+    setModalErrorMessage(message);
+    setShowErrorModal(true);
+  }, []);
+
+  const showAddedPlaceFlow = useCallback(
+    (addedPlace: Place, isFirstPlace: boolean) => {
+      setRecentlyAddedPlace(addedPlace);
+      const isCoordinate = addedPlace.name.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/);
+
+      if (isFirstPlace && !isCoordinate) {
+        setShowAnimationModal(true);
+        return;
+      }
+
+      setShowConfirmModal(true);
+    },
+    []
+  );
 
   const handleMapClick = useCallback(
     async (lat: number, lng: number) => {
       try {
+        const isFirstPlace = places.length === 0;
         const url = `/api/reverse?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}`;
         const response = await fetch(url);
 
@@ -68,34 +102,33 @@ export default function FullscreenMapPage() {
         });
 
         if (!addedPlace) {
-          setFeedback(t('cities.cityAlreadyAdded'));
+          openErrorModal(t('cities.cityAlreadyAdded'));
           return;
         }
 
-        setFeedback(t('cities.cityAdded'));
-        setTimeout(() => setFeedback(null), 2500);
+        showAddedPlaceFlow(addedPlace, isFirstPlace);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : t('errors.errorAddingPlace');
-        setFeedback(errorMessage);
+        openErrorModal(errorMessage);
       }
     },
-    [addPlace, t]
+    [addPlace, openErrorModal, places.length, showAddedPlaceFlow, t]
   );
 
   const handleAddPlaceFromInput = useCallback(
     async (place: { name: string; state?: string; country?: string; latitude: number; longitude: number }) => {
+      const isFirstPlace = places.length === 0;
       const addedPlace = await addPlace(place);
 
       if (!addedPlace) {
-        setFeedback(t('cities.cityAlreadyAdded'));
+        openErrorModal(t('cities.cityAlreadyAdded'));
         return false;
       }
 
-      setFeedback(t('cities.cityAdded'));
-      setTimeout(() => setFeedback(null), 2500);
+      showAddedPlaceFlow(addedPlace, isFirstPlace);
       return true;
     },
-    [addPlace, t]
+    [addPlace, openErrorModal, places.length, showAddedPlaceFlow, t]
   );
 
   return (
@@ -144,7 +177,7 @@ export default function FullscreenMapPage() {
         />
       )}
 
-      <div className="absolute top-3 right-3 z-[1100] flex flex-col gap-2 items-end">
+      <div className="absolute top-3 right-3 z-[1100] flex flex-col gap-2 items-end pointer-events-none">
         <button
           onClick={() => {
             setFeedback(t('dashboard.locatingUser'));
@@ -153,7 +186,7 @@ export default function FullscreenMapPage() {
           }}
           disabled={isLoading || isLocatingUser}
           aria-label={t('dashboard.goToMyLocation')}
-          className="h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+          className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isLocatingUser ? (
             <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -180,34 +213,129 @@ export default function FullscreenMapPage() {
             router.replace(segments.join('/'));
           }}
           aria-label={t('dashboard.changeLanguage')}
-          className="h-11 min-w-11 px-2 sm:h-12 sm:min-w-12 sm:px-2.5 bg-card rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center"
+          className="pointer-events-auto h-11 min-w-11 px-2 sm:h-12 sm:min-w-12 sm:px-2.5 bg-card rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center"
         >
           <span className="text-xl leading-none">{localeFlag}</span>
         </button>
       </div>
 
-      <div className="absolute top-3 left-3 right-16 sm:right-20 z-[1000]">
-        <div className="mx-auto max-w-3xl rounded-xl px-2.5 py-2">
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
+      <div className="absolute top-3 left-3 right-16 sm:right-20 z-[1000] pointer-events-none">
+        <div className="mx-auto max-w-2xl rounded-xl px-2.5 py-2 pointer-events-none">
+          <div className="flex items-center gap-2 pointer-events-none">
+            <div className="flex-1 pointer-events-auto">
               <CityInput
                 onAddPlace={handleAddPlaceFromInput}
-                onError={setFeedback}
+                onError={openErrorModal}
                 compact
               />
             </div>
             <button
               onClick={() => router.push(`/${locale}/dashboard`)}
-              className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity font-medium whitespace-nowrap"
+              className="pointer-events-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-primary text-primary-foreground rounded-lg shadow-md hover:opacity-90 transition-opacity font-medium whitespace-nowrap"
             >
               Dashboard
             </button>
           </div>
           {feedback && (
-            <p className="mt-2 text-xs sm:text-sm text-primary font-medium">{feedback}</p>
+            <p className="pointer-events-none mt-2 text-xs sm:text-sm text-primary font-medium">{feedback}</p>
           )}
         </div>
       </div>
+
+      <Modal
+        isOpen={showAnimationModal}
+        title=""
+        message={
+          <div className="flex flex-col items-center justify-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+              {t('modal.congratulations')}
+            </h2>
+            <div className="w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center">
+              <DotLottieReact
+                src="/celebration-animation.json"
+                autoplay={true}
+                loop={false}
+                speed={0.7}
+              />
+            </div>
+          </div>
+        }
+        confirmText={t('common.ok')}
+        cancelText=""
+        type="success"
+        onConfirm={() => {
+          setShowAnimationModal(false);
+          setShowConfirmModal(true);
+        }}
+        onCancel={() => {}}
+      />
+
+      {recentlyAddedPlace && (
+        <Modal
+          isOpen={showConfirmModal}
+          title={t('cities.cityAdded')}
+          videoSrc="/city-added.mp4"
+          message={
+            <div className="space-y-2">
+              {recentlyAddedPlace.name.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/) && (
+                <p className="text-yellow-600 font-medium text-sm mb-2">
+                  {t('map.notACity')}
+                </p>
+              )}
+              <p className="font-semibold text-lg">{recentlyAddedPlace.name}</p>
+              {(recentlyAddedPlace.state || recentlyAddedPlace.country) && (
+                <p className="text-muted-foreground flex items-center gap-1 justify-center">
+                  {recentlyAddedPlace.country && (
+                    <span>{getCountryFlag(recentlyAddedPlace.country)}</span>
+                  )}
+                  <span>
+                    {[recentlyAddedPlace.state, recentlyAddedPlace.country].filter(Boolean).join(', ')}
+                  </span>
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground">
+                {t('cities.addedOn')}{' '}
+                {new Date(recentlyAddedPlace.createdAt).toLocaleDateString(locale === 'pt' ? 'pt-BR' : 'en-US', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}
+              </p>
+            </div>
+          }
+          confirmText={t('common.ok')}
+          cancelText={t('common.remove')}
+          type="info"
+          onConfirm={() => {
+            setShowConfirmModal(false);
+            setRecentlyAddedPlace(null);
+          }}
+          onCancel={() => {
+            if (recentlyAddedPlace) {
+              removePlace(recentlyAddedPlace.id);
+            }
+            setShowConfirmModal(false);
+            setRecentlyAddedPlace(null);
+          }}
+        />
+      )}
+
+      <Modal
+        isOpen={showErrorModal}
+        title={t('auth.errorTitle')}
+        message={modalErrorMessage || t('errors.errorAddingPlace')}
+        confirmText={t('common.ok')}
+        cancelText=""
+        type="warning"
+        onConfirm={() => {
+          setShowErrorModal(false);
+          setModalErrorMessage(null);
+        }}
+        onCancel={() => {
+          setShowErrorModal(false);
+          setModalErrorMessage(null);
+        }}
+      />
     </main>
   );
 }

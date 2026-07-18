@@ -84,7 +84,7 @@ export default function CityInput({ onAddPlace, onError, compact = false }: City
         onChange={(e) => setCityName(e.target.value)}
         placeholder={t('dashboard.searchPlaceholder')}
         className={compact
-          ? 'flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none'
+          ? 'flex-1 px-3 sm:px-3.5 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg shadow-md focus:outline-none'
           : 'flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none'}
         disabled={isLoading}
       />
@@ -92,7 +92,7 @@ export default function CityInput({ onAddPlace, onError, compact = false }: City
         type="submit"
         disabled={isLoading || !cityName.trim()}
         className={compact
-          ? 'lg:hidden px-3 sm:px-4 py-1.5 sm:py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors whitespace-nowrap'
+          ? 'lg:hidden px-3 sm:px-4 py-1.5 sm:py-2 text-sm bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors whitespace-nowrap'
           : 'lg:hidden px-4 sm:px-6 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors whitespace-nowrap'}
         onMouseDown={(e) => {
           // Previne que o botão roube o foco do input
