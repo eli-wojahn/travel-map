@@ -54,6 +54,9 @@
     "searchPlaceholder": "Digite o nome da cidade...",
     "searching": "Buscando...",
     "clickMapToAdd": "Clique no mapa para adicionar um local diretamente",
+    "openFullscreen": "Tela cheia",
+    "fullscreenHint": "Modo tela cheia: clique no mapa para adicionar locais",
+    "backToDashboard": "Voltar ao painel",
     "scrollToCities": "Ver lista de cidades",
     "footerText": "Desenvolvido por",
     "loadingPlaces": "Carregando lugares..."

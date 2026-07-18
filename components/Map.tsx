@@ -63,6 +63,7 @@ function MapClickHandler({ onMapClick }: { onMapClick?: (lat: number, lng: numbe
 interface MapProps {
   places: Place[];
   onMapClick?: (lat: number, lng: number) => void;
+  fullscreen?: boolean;
 }
 
 /**
@@ -71,7 +72,7 @@ interface MapProps {
  * IMPORTANTE: Este componente deve ser renderizado apenas no cliente
  * devido às dependências do Leaflet que não funcionam com SSR
  */
-export default function Map({ places, onMapClick }: MapProps) {
+export default function Map({ places, onMapClick, fullscreen = false }: MapProps) {
   const t = useTranslations('map');
   const locale = useLocale();
   const [isMounted, setIsMounted] = useState(false);
@@ -84,11 +85,17 @@ export default function Map({ places, onMapClick }: MapProps) {
   // Coordenadas padrão (centro do mundo)
   const defaultCenter: [number, number] = [20, 0];
   const defaultZoom = 2;
+  const wrapperClassName = fullscreen
+    ? 'w-full h-[100dvh]'
+    : 'w-full rounded-lg overflow-hidden border border-gray-300 h-[400px] sm:h-[600px]';
+  const loadingClassName = fullscreen
+    ? 'w-full h-[100dvh] border border-gray-300 flex items-center justify-center bg-gray-100'
+    : 'w-full h-[400px] sm:h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100';
 
   // Não renderiza até estar montado no cliente
   if (!isMounted) {
     return (
-      <div className="w-full h-[400px] sm:h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100">
+      <div className={loadingClassName}>
         <p className="text-gray-500">{t('loadingMap')}</p>
       </div>
     );
@@ -96,7 +103,7 @@ export default function Map({ places, onMapClick }: MapProps) {
 
   return (
     <div 
-      className="w-full rounded-lg overflow-hidden border border-gray-300 h-[400px] sm:h-[600px]" 
+      className={wrapperClassName}
       style={{ position: 'relative', width: '100%' }}
     >
       <MapContainer

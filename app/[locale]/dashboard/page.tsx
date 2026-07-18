@@ -483,6 +483,12 @@ export default function DashboardPage() {
             >
               {t('common.clear')}
             </button>
+            <button
+              onClick={() => router.push(`/${locale}/dashboard/fullscreen`)}
+              className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity font-medium"
+            >
+              {t('dashboard.openFullscreen')}
+            </button>
           </div>
         </div>
 

@@ -54,6 +54,9 @@
     "searchPlaceholder": "Type the city name...",
     "searching": "Searching...",
     "clickMapToAdd": "Click on the map to add a location directly",
+    "openFullscreen": "Fullscreen",
+    "fullscreenHint": "Fullscreen mode: click the map to add places",
+    "backToDashboard": "Back to dashboard",
     "scrollToCities": "View city list",
     "footerText": "Developed by",
     "loadingPlaces": "Loading places..."
