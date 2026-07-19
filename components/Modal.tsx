@@ -58,7 +58,7 @@ export default function Modal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-card text-card-foreground border border-border rounded-lg shadow-xl max-w-md w-full mx-4 p-6 animate-in fade-in zoom-in duration-200">
+      <div className="bg-card text-card-foreground border border-border rounded-lg shadow-xl max-w-md w-full mx-4 p-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
         {/* Ícone ou Vídeo */}
         {title && (
           <div className="flex items-center justify-center mx-auto mb-4">
@@ -116,11 +116,11 @@ export default function Modal({
 
         {/* Botões */}
         {!hideButtons && (confirmText || cancelText) && (
-          <div className="flex gap-3 justify-center">
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 justify-center">
             {cancelText && (
               <button
                 onClick={onCancel}
-                className="px-4 py-2 text-muted-foreground bg-muted rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors font-medium"
+                className="w-full sm:w-auto px-4 py-2 text-muted-foreground bg-muted rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors font-medium"
               >
                 {cancelText}
               </button>
@@ -128,7 +128,7 @@ export default function Modal({
             {confirmText && (
               <button
                 onClick={onConfirm}
-                className={`px-4 py-2 ${colors.button} text-white rounded-lg transition-colors font-medium`}
+                className={`w-full sm:w-auto px-4 py-2 ${colors.button} text-white rounded-lg transition-colors font-medium`}
               >
                 {confirmText}
               </button>

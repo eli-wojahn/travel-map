@@ -9,13 +9,14 @@ interface CityInputProps {
   onAddPlace: (place: Omit<Place, 'id' | 'createdAt'>) => Promise<boolean> | boolean;
   onError?: (error: string) => void;
   compact?: boolean;
+  compactAddAsIcon?: boolean;
 }
 
 /**
  * Componente para adicionar uma cidade através de input de texto
  * Faz geocodificação automática ao submeter o formulário
  */
-export default function CityInput({ onAddPlace, onError, compact = false }: CityInputProps) {
+export default function CityInput({ onAddPlace, onError, compact = false, compactAddAsIcon = false }: CityInputProps) {
   const t = useTranslations();
   const [cityName, setCityName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -99,7 +100,7 @@ export default function CityInput({ onAddPlace, onError, compact = false }: City
           e.preventDefault();
         }}
       >
-        {isLoading ? t('dashboard.searching') : t('dashboard.addCity')}
+        {isLoading ? t('dashboard.searching') : compact && compactAddAsIcon ? '+' : t('dashboard.addCity')}
       </button>
     </form>
   );

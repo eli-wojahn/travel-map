@@ -183,7 +183,26 @@ export default function FullscreenMapPage() {
         />
       )}
 
-      <div className="absolute top-3 right-3 z-[1100] flex flex-col gap-2 items-end pointer-events-none">
+      <div className="absolute bottom-3 left-3 z-[1100] flex flex-col gap-2 items-start pointer-events-none">
+        <button
+          onClick={() => router.push(`/${locale}/dashboard`)}
+          aria-label="Dashboard"
+          className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-primary text-primary-foreground rounded-lg border border-border shadow-md hover:opacity-90 transition-opacity flex items-center justify-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5 12 3l9 7.5" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 9.75V21h13.5V9.75" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 21v-6h4.5v6" />
+          </svg>
+        </button>
+
         <button
           onClick={() => {
             setFeedback(t('dashboard.locatingUser'));
@@ -225,22 +244,19 @@ export default function FullscreenMapPage() {
         </button>
       </div>
 
-      <div className="absolute top-3 left-3 right-16 sm:right-20 z-[1000] pointer-events-none">
-        <div className="mx-auto max-w-2xl rounded-xl px-2.5 py-2 pointer-events-none">
-          <div className="flex items-center gap-2 pointer-events-none">
-            <div className="flex-1 pointer-events-auto">
+      <div className="absolute top-3 left-16 right-3 sm:left-3 z-[1000] pointer-events-none">
+        <div className="mx-auto max-w-4xl rounded-xl px-2 py-2 pointer-events-none">
+          <div className="flex items-start gap-2 pointer-events-none">
+            <div className="flex-1 min-w-0 pointer-events-none">
+              <div className="flex-1 pointer-events-auto">
               <CityInput
                 onAddPlace={handleAddPlaceFromInput}
                 onError={openErrorModal}
                 compact
+                compactAddAsIcon
               />
+              </div>
             </div>
-            <button
-              onClick={() => router.push(`/${locale}/dashboard`)}
-              className="pointer-events-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-primary text-primary-foreground rounded-lg shadow-md hover:opacity-90 transition-opacity font-medium whitespace-nowrap"
-            >
-              Dashboard
-            </button>
           </div>
           {feedback && (
             <p className="pointer-events-none mt-2 text-xs sm:text-sm text-primary font-medium">{feedback}</p>

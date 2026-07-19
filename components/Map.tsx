@@ -163,15 +163,58 @@ interface MapProps {
   places: Place[];
   onMapClick?: (lat: number, lng: number) => void;
   fullscreen?: boolean;
+  showZoomControl?: boolean;
   initialCenter?: [number, number];
   initialZoom?: number;
   focusMode?: 'fit-all' | 'majority-continent';
   focusAddedPlaceId?: string;
+  zoomInRequestId?: number;
+  zoomOutRequestId?: number;
   locateUserRequestId?: number;
   onLocateUserResult?: (result: {
     ok: boolean;
     error?: 'UNSUPPORTED' | 'PERMISSION_DENIED' | 'POSITION_UNAVAILABLE' | 'TIMEOUT' | 'UNKNOWN';
   }) => void;
+}
+
+function ZoomControlHandler({
+  zoomInRequestId,
+  zoomOutRequestId,
+}: {
+  zoomInRequestId?: number;
+  zoomOutRequestId?: number;
+}) {
+  const map = useMap();
+  const lastZoomInRequestRef = useRef<number>(0);
+  const lastZoomOutRequestRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!zoomInRequestId || zoomInRequestId <= 0) {
+      return;
+    }
+
+    if (lastZoomInRequestRef.current === zoomInRequestId) {
+      return;
+    }
+
+    lastZoomInRequestRef.current = zoomInRequestId;
+    map.zoomIn();
+  }, [zoomInRequestId, map]);
+
+  useEffect(() => {
+    if (!zoomOutRequestId || zoomOutRequestId <= 0) {
+      return;
+    }
+
+    if (lastZoomOutRequestRef.current === zoomOutRequestId) {
+      return;
+    }
+
+    lastZoomOutRequestRef.current = zoomOutRequestId;
+    map.zoomOut();
+  }, [zoomOutRequestId, map]);
+
+  return null;
 }
 
 function UserLocationHandler({
@@ -254,10 +297,13 @@ export default function Map({
   places,
   onMapClick,
   fullscreen = false,
+  showZoomControl = true,
   initialCenter,
   initialZoom,
   focusMode = 'fit-all',
   focusAddedPlaceId,
+  zoomInRequestId,
+  zoomOutRequestId,
   locateUserRequestId,
   onLocateUserResult,
 }: MapProps) {
@@ -299,6 +345,7 @@ export default function Map({
         center={defaultCenter}
         zoom={defaultZoom}
         minZoom={minZoom}
+        zoomControl={showZoomControl}
         worldCopyJump={true}
         className="h-full w-full"
         scrollWheelZoom={true}
@@ -316,6 +363,11 @@ export default function Map({
         <UserLocationHandler
           locateUserRequestId={locateUserRequestId}
           onLocateUserResult={onLocateUserResult}
+        />
+
+        <ZoomControlHandler
+          zoomInRequestId={zoomInRequestId}
+          zoomOutRequestId={zoomOutRequestId}
         />
 
         {/* Atualizador de visualização */}
