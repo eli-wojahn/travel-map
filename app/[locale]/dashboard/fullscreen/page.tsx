@@ -183,7 +183,7 @@ export default function FullscreenMapPage() {
         />
       )}
 
-      <div className="absolute bottom-3 left-3 z-[1100] flex flex-col gap-2 items-start pointer-events-none">
+      <div className="absolute bottom-3 left-3 z-40 flex flex-col gap-2 items-start pointer-events-none">
         <button
           onClick={() => router.push(`/${locale}/dashboard`)}
           aria-label="Dashboard"

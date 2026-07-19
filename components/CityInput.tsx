@@ -85,7 +85,7 @@ export default function CityInput({ onAddPlace, onError, compact = false, compac
         onChange={(e) => setCityName(e.target.value)}
         placeholder={t('dashboard.searchPlaceholder')}
         className={compact
-          ? 'flex-1 px-3 sm:px-3.5 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-lg shadow-md focus:outline-none'
+          ? 'flex-1 px-3 sm:px-3.5 py-1.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg shadow-md focus:outline-none'
           : 'flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none'}
         disabled={isLoading}
       />
@@ -100,7 +100,20 @@ export default function CityInput({ onAddPlace, onError, compact = false, compac
           e.preventDefault();
         }}
       >
-        {isLoading ? t('dashboard.searching') : compact && compactAddAsIcon ? '+' : t('dashboard.addCity')}
+        {isLoading ? (
+          compact ? (
+            <span
+              className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+              aria-label={t('dashboard.searching')}
+            />
+          ) : (
+            t('dashboard.searching')
+          )
+        ) : compact && compactAddAsIcon ? (
+          '+'
+        ) : (
+          t('dashboard.addCity')
+        )}
       </button>
     </form>
   );
