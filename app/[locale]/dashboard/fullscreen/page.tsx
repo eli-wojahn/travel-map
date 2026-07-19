@@ -183,7 +183,7 @@ export default function FullscreenMapPage() {
         />
       )}
 
-      <div className="absolute bottom-3 left-3 z-40 flex flex-col gap-2 items-start pointer-events-none">
+      <div className="absolute bottom-3 left-3 z-40 flex flex-col gap-2 items-start pointer-events-none lg:hidden">
         <button
           onClick={() => router.push(`/${locale}/dashboard`)}
           aria-label="Dashboard"
@@ -244,7 +244,49 @@ export default function FullscreenMapPage() {
         </button>
       </div>
 
-      <div className="absolute top-3 left-16 right-3 sm:left-3 z-[1000] pointer-events-none">
+      <div className="absolute top-3 right-3 z-40 hidden lg:flex flex-col gap-2 items-end pointer-events-none">
+        <button
+          onClick={() => {
+            setFeedback(t('dashboard.locatingUser'));
+            setIsLocatingUser(true);
+            setLocateUserRequestId((prev) => prev + 1);
+          }}
+          disabled={isLoading || isLocatingUser}
+          aria-label={t('dashboard.goToMyLocation')}
+          className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {isLocatingUser ? (
+            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+                <circle cx="12" cy="12" r="7" />
+                <circle cx="12" cy="12" r="2" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+            </svg>
+          )}
+        </button>
+
+        <button
+          onClick={() => {
+            const segments = pathname.split('/');
+            segments[1] = nextLocale;
+            router.replace(segments.join('/'));
+          }}
+          aria-label={t('dashboard.changeLanguage')}
+          className="pointer-events-auto h-11 min-w-11 px-2 sm:h-12 sm:min-w-12 sm:px-2.5 bg-card rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center"
+        >
+          <span className="text-xl leading-none">{localeFlag}</span>
+        </button>
+      </div>
+
+      <div className="absolute top-3 left-16 right-3 z-[1000] pointer-events-none lg:hidden">
         <div className="mx-auto max-w-4xl rounded-xl px-2 py-2 pointer-events-none">
           <div className="flex items-start gap-2 pointer-events-none">
             <div className="flex-1 min-w-0 pointer-events-none">
@@ -257,6 +299,29 @@ export default function FullscreenMapPage() {
               />
               </div>
             </div>
+          </div>
+          {feedback && (
+            <p className="pointer-events-none mt-2 text-xs sm:text-sm text-primary font-medium">{feedback}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="absolute top-3 left-3 right-20 z-[1000] pointer-events-none hidden lg:block">
+        <div className="mx-auto max-w-2xl rounded-xl px-2.5 py-2 pointer-events-none">
+          <div className="flex items-center gap-2 pointer-events-none">
+            <div className="flex-1 pointer-events-auto">
+              <CityInput
+                onAddPlace={handleAddPlaceFromInput}
+                onError={openErrorModal}
+                compact
+              />
+            </div>
+            <button
+              onClick={() => router.push(`/${locale}/dashboard`)}
+              className="pointer-events-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-primary text-primary-foreground rounded-lg shadow-md hover:opacity-90 transition-opacity font-medium whitespace-nowrap"
+            >
+              Dashboard
+            </button>
           </div>
           {feedback && (
             <p className="pointer-events-none mt-2 text-xs sm:text-sm text-primary font-medium">{feedback}</p>
