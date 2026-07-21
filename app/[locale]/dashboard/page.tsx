@@ -209,7 +209,7 @@ export default function DashboardPage() {
 
   const handleMapClick = useCallback(async (lat: number, lng: number) => {
     try {
-      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+      const url = `/api/reverse?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}&lang=${encodeURIComponent(locale)}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -260,7 +260,7 @@ export default function DashboardPage() {
         : t('errors.errorAddingPlace');
       setError(errorMessage);
     }
-  }, [addPlace, places, t]);
+  }, [addPlace, locale, places, t]);
 
   const handleError = useCallback((errorMessage: string) => {
     setError(errorMessage);

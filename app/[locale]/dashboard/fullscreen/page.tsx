@@ -76,7 +76,7 @@ export default function FullscreenMapPage() {
     async (lat: number, lng: number) => {
       try {
         const isFirstPlace = places.length === 0;
-        const url = `/api/reverse?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}`;
+        const url = `/api/reverse?lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}&lang=${encodeURIComponent(locale)}`;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -114,7 +114,7 @@ export default function FullscreenMapPage() {
         openErrorModal(errorMessage);
       }
     },
-    [addPlace, openErrorModal, places.length, showAddedPlaceFlow, t]
+    [addPlace, locale, openErrorModal, places.length, showAddedPlaceFlow, t]
   );
 
   const handleAddPlaceFromInput = useCallback(

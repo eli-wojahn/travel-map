@@ -13,13 +13,16 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const lat = url.searchParams.get('lat');
     const lon = url.searchParams.get('lon');
+    const langParam = url.searchParams.get('lang');
+    const language = langParam === 'pt' ? 'pt-BR,pt,en' : 'en-US,en';
 
     if (!lat || !lon) {
       return NextResponse.json({ error: 'Missing lat or lon' }, { status: 400 });
     }
 
     // Normalize key (round to 5 decimals to increase cache hits)
-    const key = `${Number(lat).toFixed(5)},${Number(lon).toFixed(5)}`;
+    // Language is part of key to prevent returning localized names from another locale.
+    const key = `${Number(lat).toFixed(5)},${Number(lon).toFixed(5)}|${language}`;
 
     const cached = cache.get(key);
     const now = Date.now();
@@ -35,12 +38,13 @@ export async function GET(request: Request) {
 
     const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(
       lat
-    )}&lon=${encodeURIComponent(lon)}&addressdetails=1`;
+    )}&lon=${encodeURIComponent(lon)}&addressdetails=1&accept-language=${encodeURIComponent(language)}`;
 
     // Identify our application per Nominatim policy
     const res = await fetch(nominatimUrl, {
       headers: {
-        'User-Agent': 'LugaresDoMundo/1.0 (https://github.com/eli-wojahn)'
+        'User-Agent': 'LugaresDoMundo/1.0 (https://github.com/eli-wojahn)',
+        'Accept-Language': language,
       },
     });
 
