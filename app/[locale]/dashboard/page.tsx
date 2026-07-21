@@ -573,7 +573,7 @@ export default function DashboardPage() {
           title=""
           message={
             <div className="flex flex-col items-center justify-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+              <h2 className="text-2xl font-bold text-card-foreground mb-4 text-center">
                 {t('modal.congratulations')}
               </h2>
               <div className="w-96 h-96 flex items-center justify-center">

@@ -5,8 +5,8 @@ type Props = {
 };
 
 /**
- * Locale root page - redirects to dashboard
+ * Locale root page - redirects to fullscreen map
  */
 export default function LocalePage({ params: { locale } }: Props) {
-  redirect(`/${locale}/dashboard`);
+  redirect(`/${locale}/dashboard/fullscreen`);
 }

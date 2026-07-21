@@ -334,7 +334,7 @@ export default function FullscreenMapPage() {
         title=""
         message={
           <div className="flex flex-col items-center justify-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+            <h2 className="text-2xl font-bold text-card-foreground mb-4 text-center">
               {t('modal.congratulations')}
             </h2>
             <div className="w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center">
