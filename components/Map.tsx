@@ -5,7 +5,8 @@ import { useTranslations, useLocale } from 'next-intl';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { Place } from '@/types';
-import { getCountryFlag } from '@/lib/countryFlags';
+import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
+import { getLocalizedCountryName } from '@/lib/country';
 import 'leaflet/dist/leaflet.css';
 
 // Fix para ícones padrão do Leaflet no Next.js
@@ -378,38 +379,46 @@ export default function Map({
         />
 
         {/* Marcadores para cada lugar */}
-        {places.map((place) => (
-          <Marker
-            key={place.id}
-            position={[place.latitude, place.longitude]}
-          >
-            <Popup>
-              <div className="text-center">
-                <p className="font-semibold">
-                  {place.name}
-                  {place.state && (
-                    <span className="text-gray-500 font-normal">
-                      {`, ${place.state}`}
-                    </span>
-                  )}
-                </p>
-                {(place.country || place.state) && (
-                  <p className="text-sm text-gray-600 flex items-center justify-center gap-1">
-                    {place.country && (
-                      <span>{getCountryFlag(place.country)}</span>
+        {places.map((place) => {
+          const localizedCountry = getLocalizedCountryName({
+            country: place.country,
+            countryCode: place.countryCode,
+            locale,
+          });
+
+          return (
+            <Marker
+              key={place.id}
+              position={[place.latitude, place.longitude]}
+            >
+              <Popup>
+                <div className="text-center">
+                  <p className="font-semibold">
+                    {place.name}
+                    {place.state && (
+                      <span className="text-gray-500 font-normal">
+                        {`, ${place.state}`}
+                      </span>
                     )}
-                    <span>
-                      {[place.state, place.country].filter(Boolean).join(', ')}
-                    </span>
                   </p>
-                )}
-                <p className="text-xs text-gray-500 mt-1">
-                  {new Date(place.createdAt).toLocaleDateString(locale === 'pt' ? 'pt-BR' : 'en-US')}
-                </p>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+                  {(place.country || place.state) && (
+                    <p className="text-sm text-gray-600 flex items-center justify-center gap-1">
+                      {(place.country || place.countryCode) && (
+                        <span>{getCountryFlagByCode(place.countryCode) || getCountryFlag(localizedCountry)}</span>
+                      )}
+                      <span>
+                        {[place.state, localizedCountry].filter(Boolean).join(', ')}
+                      </span>
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(place.createdAt).toLocaleDateString(locale === 'pt' ? 'pt-BR' : 'en-US')}
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
   );

@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Place } from '@/types';
-import { getCountryFlag } from '@/lib/countryFlags';
+import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
+import { getLocalizedCountryName } from '@/lib/country';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import {
   DndContext,
@@ -59,6 +60,12 @@ function SortableCityItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const localizedCountry = getLocalizedCountryName({
+    country: place.country,
+    countryCode: place.countryCode,
+    locale,
+  });
+
   return (
     <div
       ref={setNodeRef}
@@ -76,9 +83,11 @@ function SortableCityItem({
 
           {(place.country || place.state) && (
             <p className="text-sm text-muted-foreground flex items-center gap-1">
-              {place.country && <span>{getCountryFlag(place.country)}</span>}
+              {(place.country || place.countryCode) && (
+                <span>{getCountryFlagByCode(place.countryCode) || getCountryFlag(localizedCountry)}</span>
+              )}
               <span>
-                {[place.state, place.country].filter(Boolean).join(', ')}
+                {[place.state, localizedCountry].filter(Boolean).join(', ')}
               </span>
             </p>
           )}

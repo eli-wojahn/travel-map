@@ -32,7 +32,8 @@ describe('geocoding', () => {
     expect(result).toEqual({
       name: 'Sao Paulo',
       state: 'Sao Paulo',
-      country: 'Brasil',
+      country: 'Brazil',
+      countryCode: 'BR',
       latitude: -23.5505,
       longitude: -46.6333,
     });

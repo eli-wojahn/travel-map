@@ -238,6 +238,50 @@ const countryFlags: Record<string, string> = {
   'Canada': '🇨🇦',
 };
 
+function normalizeCountryNameForLookup(value?: string): string | undefined {
+  if (!value) return undefined;
+
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '');
+
+  return normalized || undefined;
+}
+
+function decodeFlagToCountryCode(flag: string): string | undefined {
+  const chars = Array.from(flag);
+  if (chars.length !== 2) return undefined;
+
+  const code = chars
+    .map((char) => String.fromCharCode(char.codePointAt(0)! - 127397))
+    .join('');
+
+  return /^[A-Z]{2}$/.test(code) ? code : undefined;
+}
+
+const countryNameToCodeFromFlags = (() => {
+  const map = new Map<string, string>();
+
+  Object.entries(countryFlags).forEach(([countryName, flag]) => {
+    const normalizedName = normalizeCountryNameForLookup(countryName);
+    const code = decodeFlagToCountryCode(flag);
+    if (normalizedName && code && !map.has(normalizedName)) {
+      map.set(normalizedName, code);
+    }
+  });
+
+  return map;
+})();
+
+export function inferCountryCodeFromCountryName(countryName?: string): string | undefined {
+  const normalizedName = normalizeCountryNameForLookup(countryName);
+  if (!normalizedName) return undefined;
+
+  return countryNameToCodeFromFlags.get(normalizedName);
+}
+
 /**
  * Retorna o emoji da bandeira para um país
  * @param countryName - Nome do país (em português ou inglês)
@@ -262,5 +306,23 @@ export function getCountryFlag(countryName: string | undefined): string {
   
   // Fallback: retorna emoji genérico de mapa
   return '🗺️';
+}
+
+/**
+ * Retorna o emoji da bandeira a partir de código ISO 3166-1 alpha-2
+ * @param countryCode - Ex.: BR, US, IT
+ * @returns Emoji da bandeira ou undefined se código inválido
+ */
+export function getCountryFlagByCode(countryCode: string | undefined): string | undefined {
+  if (!countryCode) return undefined;
+
+  const code = countryCode.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return undefined;
+
+  const flag = String.fromCodePoint(
+    ...Array.from(code).map((char) => 127397 + char.charCodeAt(0))
+  );
+
+  return flag;
 }
 

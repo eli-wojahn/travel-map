@@ -16,7 +16,8 @@ import Modal from '@/components/Modal';
 import ShareModal from '@/components/ShareModal';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
-import { getCountryFlag } from '@/lib/countryFlags';
+import { getCanonicalCountryName, getLocalizedCountryName, normalizeCountryCode } from '@/lib/country';
+import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
 import { Place } from '@/types';
 
 function MapLoading() {
@@ -59,6 +60,13 @@ export default function DashboardPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
   const [isMigrating, setIsMigrating] = useState(false);
+  const localizedRecentlyAddedCountry = recentlyAddedPlace
+    ? getLocalizedCountryName({
+        country: recentlyAddedPlace.country,
+        countryCode: recentlyAddedPlace.countryCode,
+        locale,
+      })
+    : undefined;
 
   // Função para migrar dados do localStorage para o Supabase
   const migrateGuestData = useCallback(async () => {
@@ -196,6 +204,7 @@ export default function DashboardPage() {
         setShowConfirmModal(true);
       }
       return true;
+
     },
     [addPlace, places, t]
   );
@@ -217,12 +226,13 @@ export default function DashboardPage() {
       }
 
       const data = await response.json();
+      const countryCode = normalizeCountryCode(data.address?.country_code);
+      const country = getCanonicalCountryName(data.address?.country, countryCode);
       const name = data.address?.city ||
         data.address?.town ||
         data.address?.village ||
         data.address?.municipality ||
         `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-      const country = data.address?.country || undefined;
 
       const placeData = {
         name,
@@ -232,6 +242,7 @@ export default function DashboardPage() {
           data.address?.region ||
           undefined,
         country,
+        countryCode,
         latitude: lat,
         longitude: lng,
       };
@@ -638,11 +649,11 @@ export default function DashboardPage() {
                 <p className="font-semibold text-lg">{recentlyAddedPlace.name}</p>
                 {(recentlyAddedPlace.state || recentlyAddedPlace.country) && (
                   <p className="text-muted-foreground flex items-center gap-1 justify-center">
-                    {recentlyAddedPlace.country && (
-                      <span>{getCountryFlag(recentlyAddedPlace.country)}</span>
+                    {(recentlyAddedPlace.country || recentlyAddedPlace.countryCode) && (
+                      <span>{getCountryFlagByCode(recentlyAddedPlace.countryCode) || getCountryFlag(localizedRecentlyAddedCountry)}</span>
                     )}
                     <span>
-                      {[recentlyAddedPlace.state, recentlyAddedPlace.country].filter(Boolean).join(', ')}
+                      {[recentlyAddedPlace.state, localizedRecentlyAddedCountry].filter(Boolean).join(', ')}
                     </span>
                   </p>
                 )}

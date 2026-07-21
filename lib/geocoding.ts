@@ -1,4 +1,5 @@
 import { GeocodeResult } from '@/types';
+import { getCanonicalCountryName, inferCountryCode, normalizeCountryCode } from '@/lib/country';
 
 /**
  * Geocodifica o nome de uma cidade usando a API Nominatim (OpenStreetMap)
@@ -33,10 +34,13 @@ export async function geocodeCity(cityName: string): Promise<GeocodeResult> {
     }
     
     const result = data[0];
+    const countryCode =
+      normalizeCountryCode(result.address?.country_code) ||
+      inferCountryCode(result.address?.country);
+    const country = getCanonicalCountryName(result.address?.country, countryCode);
     
     // Extrai o nome da cidade e país
     const name = result.display_name.split(',')[0]; // Primeira parte do display_name geralmente é a cidade
-    const country = result.address?.country || undefined;
     const state =
       result.address?.state ||
       result.address?.state_district ||
@@ -47,6 +51,7 @@ export async function geocodeCity(cityName: string): Promise<GeocodeResult> {
       name: name || cityName, // Fallback para o nome original se não houver
       state,
       country,
+      countryCode,
       latitude: parseFloat(result.lat),
       longitude: parseFloat(result.lon),
     };

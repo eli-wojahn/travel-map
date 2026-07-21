@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase-browser';
 import { Place } from '@/types';
 import { loadPlaces, savePlaces, generatePlaceId } from '@/lib/storage';
+import { getCanonicalCountryName, getCountryIdentity, inferCountryCode, normalizeCountryCode } from '@/lib/country';
 
 /**
  * Hook customizado para gerenciar a lista de lugares visitados
@@ -51,10 +52,12 @@ export function usePlaces() {
         // Converte dados do Supabase para o formato Place (se houver)
         if (supabasePlaces && supabasePlaces.length > 0) {
           const formattedPlaces: Place[] = supabasePlaces.map((p: any) => ({
+            // Keep country display canonical even for legacy rows without country_code.
+            countryCode: normalizeCountryCode(p.country_code || undefined) || inferCountryCode(p.country || undefined),
             id: p.id,
             name: p.name,
             state: p.state || undefined,
-            country: p.country || undefined,
+            country: getCanonicalCountryName(p.country || undefined, p.country_code || undefined),
             latitude: p.latitude,
             longitude: p.longitude,
             createdAt: p.created_at,
@@ -95,6 +98,7 @@ export function usePlaces() {
             
             if (payload.eventType === 'INSERT') {
               const newPlace = payload.new;
+              const countryCode = normalizeCountryCode(newPlace.country_code || undefined) || inferCountryCode(newPlace.country || undefined);
               setPlaces((prev) => {
                 // Evita duplicatas
                 if (prev.some((p) => p.id === newPlace.id)) return prev;
@@ -104,7 +108,8 @@ export function usePlaces() {
                     id: newPlace.id,
                     name: newPlace.name,
                     state: newPlace.state || undefined,
-                    country: newPlace.country || undefined,
+                    country: getCanonicalCountryName(newPlace.country || undefined, countryCode),
+                    ...(countryCode ? { countryCode } : {}),
                     latitude: newPlace.latitude,
                     longitude: newPlace.longitude,
                     createdAt: newPlace.created_at,
@@ -115,6 +120,7 @@ export function usePlaces() {
             } else if (payload.eventType === 'DELETE') {
               setPlaces((prev) => prev.filter((p) => p.id !== payload.old.id));
             } else if (payload.eventType === 'UPDATE') {
+              const countryCode = normalizeCountryCode(payload.new.country_code || undefined) || inferCountryCode(payload.new.country || undefined);
               setPlaces((prev) =>
                 prev.map((p) =>
                   p.id === payload.new.id
@@ -122,7 +128,8 @@ export function usePlaces() {
                         id: payload.new.id,
                         name: payload.new.name,
                         state: payload.new.state || undefined,
-                        country: payload.new.country || undefined,
+                        country: getCanonicalCountryName(payload.new.country || undefined, countryCode),
+                        ...(countryCode ? { countryCode } : {}),
                         latitude: payload.new.latitude,
                         longitude: payload.new.longitude,
                         createdAt: payload.new.created_at,
@@ -155,16 +162,24 @@ export function usePlaces() {
   const addPlace = useCallback(
     async (place: Omit<Place, 'id' | 'createdAt'>): Promise<Place | null> => {
       try {
+        const countryCode = normalizeCountryCode(place.countryCode) || inferCountryCode(place.country);
+        const country = getCanonicalCountryName(place.country, countryCode);
+        const normalizedPlace = {
+          ...place,
+          country,
+          countryCode,
+        };
+
         // Verifica duplicatas localmente primeiro
         const isDuplicate = places.some((existing) => {
           const sameName =
-            existing.name.trim().toLowerCase() === place.name.trim().toLowerCase();
+            existing.name.trim().toLowerCase() === normalizedPlace.name.trim().toLowerCase();
           const sameCountry =
-            (existing.country || '').trim().toLowerCase() ===
-            (place.country || '').trim().toLowerCase();
+            getCountryIdentity(existing.country, existing.countryCode) ===
+            getCountryIdentity(normalizedPlace.country, normalizedPlace.countryCode);
           const sameState =
             (existing.state || '').trim().toLowerCase() ===
-            (place.state || '').trim().toLowerCase();
+            (normalizedPlace.state || '').trim().toLowerCase();
           return sameName && sameCountry && sameState;
         });
 
@@ -176,11 +191,12 @@ export function usePlaces() {
         if (isGuestMode) {
           const newPlace: Place = {
             id: generatePlaceId(),
-            name: place.name,
-            state: place.state,
-            country: place.country,
-            latitude: place.latitude,
-            longitude: place.longitude,
+            name: normalizedPlace.name,
+            state: normalizedPlace.state,
+            country: normalizedPlace.country,
+            ...(normalizedPlace.countryCode ? { countryCode: normalizedPlace.countryCode } : {}),
+            latitude: normalizedPlace.latitude,
+            longitude: normalizedPlace.longitude,
             createdAt: new Date().toISOString(),
           };
 
@@ -200,19 +216,35 @@ export function usePlaces() {
           return null;
         }
 
-        // Insere no Supabase
-        const { data, error } = await supabase
+        const basePayload = {
+          user_id: user.id,
+          name: normalizedPlace.name,
+          state: normalizedPlace.state || null,
+          country: normalizedPlace.country || null,
+          latitude: normalizedPlace.latitude,
+          longitude: normalizedPlace.longitude,
+        };
+
+        // Insere no Supabase. Se a coluna country_code ainda não existir,
+        // faz fallback para manter compatibilidade com bancos não migrados.
+        let insertResult = await supabase
           .from('places')
           .insert({
-            user_id: user.id,
-            name: place.name,
-            state: place.state || null,
-            country: place.country || null,
-            latitude: place.latitude,
-            longitude: place.longitude,
+            ...basePayload,
+            country_code: normalizedPlace.countryCode || null,
           } as any)
           .select()
           .single();
+
+        if (insertResult.error?.code === 'PGRST204' && insertResult.error?.message?.includes('country_code')) {
+          insertResult = await supabase
+            .from('places')
+            .insert(basePayload as any)
+            .select()
+            .single();
+        }
+
+        const { data, error } = insertResult;
 
         if (error) {
           console.error('Erro ao adicionar lugar:', error);
@@ -226,7 +258,10 @@ export function usePlaces() {
           id: (data as any).id,
           name: (data as any).name,
           state: (data as any).state || undefined,
-          country: (data as any).country || undefined,
+          country: getCanonicalCountryName((data as any).country || undefined),
+          ...(normalizeCountryCode((data as any).country_code || normalizedPlace.countryCode)
+            ? { countryCode: normalizeCountryCode((data as any).country_code || normalizedPlace.countryCode) }
+            : {}),
           latitude: (data as any).latitude,
           longitude: (data as any).longitude,
           createdAt: (data as any).created_at,

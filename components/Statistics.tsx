@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Place } from '@/types';
-import { getCountryFlag } from '@/lib/countryFlags';
+import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
+import { getCountryIdentity, getLocalizedCountryName } from '@/lib/country';
 import * as Collapsible from '@radix-ui/react-collapsible';
 
 interface StatisticsProps {
@@ -17,41 +18,54 @@ interface StatisticsProps {
  */
 export default function Statistics({ places, onShareClick }: StatisticsProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const [openCountries, setOpenCountries] = useState(false);
   // Calcula estatísticas baseadas nos lugares
   const stats = useMemo(() => {
     const totalCities = places.length;
-    
-    // Extrai países únicos (filtra lugares que têm país definido)
-    const countriesSet = new Set<string>();
-    places.forEach((place) => {
-      if (place.country) {
-        countriesSet.add(place.country);
-      }
-    });
-    
+
     // Conta quantas cidades por país
-    const citiesByCountry = new Map<string, number>();
+    const countriesById = new Map<string, { count: number; name: string; countryCode?: string }>();
     places.forEach((place) => {
-      if (place.country) {
-        const count = citiesByCountry.get(place.country) || 0;
-        citiesByCountry.set(place.country, count + 1);
+      const countryId = getCountryIdentity(place.country, place.countryCode);
+      if (!countryId) return;
+
+      const countryName =
+        getLocalizedCountryName({ country: place.country, countryCode: place.countryCode, locale }) ||
+        place.country ||
+        'Unknown';
+
+      const existing = countriesById.get(countryId);
+      if (existing) {
+        existing.count += 1;
+        return;
       }
+
+      countriesById.set(countryId, {
+        count: 1,
+        name: countryName,
+        countryCode: place.countryCode,
+      });
     });
-    
+
     // Ordena países pelo número de cidades (decrescente)
-    const uniqueCountries = Array.from(citiesByCountry.keys())
-      .sort((a, b) => (citiesByCountry.get(b) || 0) - (citiesByCountry.get(a) || 0));
-    
+    const uniqueCountries = Array.from(countriesById.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([id, data]) => ({
+        id,
+        name: data.name,
+        countryCode: data.countryCode,
+        cityCount: data.count,
+      }));
+
     const totalCountries = uniqueCountries.length;
-    
+
     return {
       totalCities,
       totalCountries,
       uniqueCountries,
-      citiesByCountry,
     };
-  }, [places]);
+  }, [locale, places]);
 
   if (places.length === 0) {
     return (
@@ -107,15 +121,15 @@ export default function Statistics({ places, onShareClick }: StatisticsProps) {
                 ? stats.uniqueCountries
                 : stats.uniqueCountries.slice(0, 8)
               ).map((country) => {
-                const cityCount = stats.citiesByCountry.get(country) || 0;
+                const cityCount = country.cityCount;
                 return (
                   <div
-                    key={country}
+                    key={country.id}
                     className="flex items-center justify-between p-2"
                   >
                     <span className="text-sm font-medium text-foreground flex items-center gap-2">
-                      <span className="text-lg">{getCountryFlag(country)}</span>
-                      <span>{country}</span>
+                      <span className="text-lg">{getCountryFlagByCode(country.countryCode) || getCountryFlag(country.name)}</span>
+                      <span>{country.name}</span>
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {cityCount} {cityCount === 1 ? t('cities.city') : t('cities.cities')}

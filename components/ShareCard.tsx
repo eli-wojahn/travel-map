@@ -1,11 +1,12 @@
 'use client';
 
 import { Place } from '@/types';
-import { getCountryFlag } from '@/lib/countryFlags';
+import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
 import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 import { useTheme } from '@/lib/theme';
+import { getCountryIdentity, getLocalizedCountryName } from '@/lib/country';
 
 const GEO_URL = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
 
@@ -20,28 +21,43 @@ interface ShareCardProps {
  */
 export default function ShareCard({ places, format = 'square' }: ShareCardProps) {
   const t = useTranslations('share');
+  const locale = useLocale();
   const { resolvedTheme } = useTheme();
   // Calcula estatísticas
   const stats = useMemo(() => {
     const totalCities = places.length;
-    
-    const countriesSet = new Set<string>();
+
+    const countriesById = new Map<string, { count: number; name: string; countryCode?: string }>();
     places.forEach((place) => {
-      if (place.country) {
-        countriesSet.add(place.country);
+      const countryId = getCountryIdentity(place.country, place.countryCode);
+      if (!countryId) return;
+
+      const countryName =
+        getLocalizedCountryName({ country: place.country, countryCode: place.countryCode, locale }) ||
+        place.country ||
+        'Unknown';
+
+      const existing = countriesById.get(countryId);
+      if (existing) {
+        existing.count += 1;
+        return;
       }
+
+      countriesById.set(countryId, {
+        count: 1,
+        name: countryName,
+        countryCode: place.countryCode,
+      });
     });
-    
-    const citiesByCountry = new Map<string, number>();
-    places.forEach((place) => {
-      if (place.country) {
-        const count = citiesByCountry.get(place.country) || 0;
-        citiesByCountry.set(place.country, count + 1);
-      }
-    });
-    
-    const uniqueCountries = Array.from(citiesByCountry.keys())
-      .sort((a, b) => (citiesByCountry.get(b) || 0) - (citiesByCountry.get(a) || 0));
+
+    const uniqueCountries = Array.from(countriesById.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([id, data]) => ({
+        id,
+        name: data.name,
+        countryCode: data.countryCode,
+        cityCount: data.count,
+      }));
     
     const totalCountries = uniqueCountries.length;
     const topCountries = uniqueCountries.slice(0, 3);
@@ -50,9 +66,8 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
       totalCities,
       totalCountries,
       topCountries,
-      citiesByCountry,
     };
-  }, [places]);
+  }, [locale, places]);
 
   const containerClass = format === 'square' 
     ? 'w-[1080px] h-[1080px]' 
@@ -216,14 +231,14 @@ export default function ShareCard({ places, format = 'square' }: ShareCardProps)
               </div>
               <div className={format === 'square' ? 'space-y-1' : 'space-y-2'}>
                 {stats.topCountries.slice(0, 3).map((country) => (
-                  <div key={country} className="flex items-center gap-2">
-                    <span className={format === 'square' ? 'text-2xl' : 'text-3xl'}>{getCountryFlag(country)}</span>
+                  <div key={country.id} className="flex items-center gap-2">
+                    <span className={format === 'square' ? 'text-2xl' : 'text-3xl'}>{getCountryFlagByCode(country.countryCode) || getCountryFlag(country.name)}</span>
                     <div className="flex-1 min-w-0">
                       <span className={format === 'square' ? `text-sm font-medium ${palette.countryText}` : `text-lg font-medium ${palette.countryText}`}>
-                        {country}
+                        {country.name}
                       </span>
                       <span className={format === 'square' ? `text-xs ml-2 ${palette.countText}` : `text-base ml-2 ${palette.countText}`}>
-                        ({stats.citiesByCountry.get(country)})
+                        ({country.cityCount})
                       </span>
                     </div>
                   </div>

@@ -66,7 +66,21 @@ describe('Statistics', () => {
       />
     );
     expect(screen.getByText('Brasil')).toBeInTheDocument();
-    expect(screen.getByText('Japan')).toBeInTheDocument();
+    expect(screen.getByText('Japão')).toBeInTheDocument();
+  });
+
+  it('counts one country when names differ only by language', () => {
+    render(
+      <Statistics
+        places={[
+          place('1', 'Naples', 'Italy'),
+          place('2', 'Rome', 'Itália'),
+        ]}
+      />
+    );
+
+    expect(screen.getByText('1')).toBeInTheDocument(); // countries
+    expect(screen.getByText('Itália')).toBeInTheDocument();
   });
 
   it('lists the country with most cities before countries with fewer', () => {
@@ -82,8 +96,8 @@ describe('Statistics', () => {
       />
     );
 
-    const japan  = screen.getByText('Japan');
-    const france = screen.getByText('France');
+    const japan  = screen.getByText('Japão');
+    const france = screen.getByText('França');
 
     // Japan (3 cities) must appear before France (1 city) in the DOM
     expect(

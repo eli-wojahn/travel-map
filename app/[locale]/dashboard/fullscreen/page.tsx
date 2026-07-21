@@ -7,7 +7,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { usePlaces } from '@/hooks/usePlaces';
 import CityInput from '@/components/CityInput';
 import Modal from '@/components/Modal';
-import { getCountryFlag } from '@/lib/countryFlags';
+import { getCanonicalCountryName, getLocalizedCountryName, normalizeCountryCode } from '@/lib/country';
+import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
 import { Place } from '@/types';
 
 function MapLoading() {
@@ -48,6 +49,13 @@ export default function FullscreenMapPage() {
   const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(null);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
   const [focusAddedPlaceId, setFocusAddedPlaceId] = useState<string | undefined>(undefined);
+  const localizedRecentlyAddedCountry = recentlyAddedPlace
+    ? getLocalizedCountryName({
+        country: recentlyAddedPlace.country,
+        countryCode: recentlyAddedPlace.countryCode,
+        locale,
+      })
+    : undefined;
   const nextLocale = locale === 'pt' ? 'en' : 'pt';
   const localeFlag = locale === 'pt' ? '🇧🇷' : '🇺🇸';
 
@@ -84,6 +92,7 @@ export default function FullscreenMapPage() {
         }
 
         const data = await response.json();
+        const countryCode = normalizeCountryCode(data.address?.country_code);
         const name =
           data.address?.city ||
           data.address?.town ||
@@ -98,7 +107,8 @@ export default function FullscreenMapPage() {
             data.address?.state_district ||
             data.address?.region ||
             undefined,
-          country: data.address?.country || undefined,
+          country: getCanonicalCountryName(data.address?.country, countryCode),
+          countryCode,
           latitude: lat,
           longitude: lng,
         });
@@ -372,11 +382,11 @@ export default function FullscreenMapPage() {
               <p className="font-semibold text-lg">{recentlyAddedPlace.name}</p>
               {(recentlyAddedPlace.state || recentlyAddedPlace.country) && (
                 <p className="text-muted-foreground flex items-center gap-1 justify-center">
-                  {recentlyAddedPlace.country && (
-                    <span>{getCountryFlag(recentlyAddedPlace.country)}</span>
+                  {(recentlyAddedPlace.country || recentlyAddedPlace.countryCode) && (
+                    <span>{getCountryFlagByCode(recentlyAddedPlace.countryCode) || getCountryFlag(localizedRecentlyAddedCountry)}</span>
                   )}
                   <span>
-                    {[recentlyAddedPlace.state, recentlyAddedPlace.country].filter(Boolean).join(', ')}
+                    {[recentlyAddedPlace.state, localizedRecentlyAddedCountry].filter(Boolean).join(', ')}
                   </span>
                 </p>
               )}

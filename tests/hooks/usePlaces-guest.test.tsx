@@ -154,6 +154,46 @@ describe('usePlaces – guest mode', () => {
     expect(duplicate).toBeNull();
   });
 
+  it('treats the same city as duplicate when country names differ by language but countryCode is equal', async () => {
+    const { result } = await initGuestHook();
+
+    await act(async () => {
+      await result.current.addPlace(
+        makePlaceInput({ name: 'Rome', state: 'Lazio', country: 'Italy', countryCode: 'IT' })
+      );
+    });
+
+    let duplicate: Place | null = null;
+    await act(async () => {
+      duplicate = await result.current.addPlace(
+        makePlaceInput({ name: 'Rome', state: 'Lazio', country: 'Itália', countryCode: 'it' })
+      );
+    });
+
+    expect(duplicate).toBeNull();
+    expect(result.current.places).toHaveLength(1);
+  });
+
+  it('treats the same city as duplicate when country names differ by language without countryCode', async () => {
+    const { result } = await initGuestHook();
+
+    await act(async () => {
+      await result.current.addPlace(
+        makePlaceInput({ name: 'Rome', state: 'Lazio', country: 'Italy', countryCode: undefined })
+      );
+    });
+
+    let duplicate: Place | null = null;
+    await act(async () => {
+      duplicate = await result.current.addPlace(
+        makePlaceInput({ name: 'Rome', state: 'Lazio', country: 'Itália', countryCode: undefined })
+      );
+    });
+
+    expect(duplicate).toBeNull();
+    expect(result.current.places).toHaveLength(1);
+  });
+
   it('two cities with same name but different countries are allowed', async () => {
     const { result } = await initGuestHook();
 
