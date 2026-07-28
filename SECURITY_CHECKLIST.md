@@ -116,6 +116,27 @@ Após deploy, adicione a URL de produção:
 
 `public.spatial_ref_sys` é uma tabela de metadata da extensão PostGIS e pode ser gerenciada por owner do sistema. Em ambientes Supabase onde o projeto não é owner dessa tabela, comandos de hardening (ALTER/REVOKE/POLICY) podem falhar por privilégio insuficiente. O risco funcional para dados do app foi mitigado com `PASS` nas tabelas de aplicação.
 
+### Runbook: `rls_disabled_in_public` em `public.spatial_ref_sys`
+
+1. Execute `supabase/rls_hardening.sql`.
+2. Se houver `SQLSTATE 42501` (`must be owner of table spatial_ref_sys`), execute `supabase/fix_spatial_ref_sys_rls.sql` para coletar diagnóstico.
+3. Verifique se ainda existem grants para `anon` e `authenticated` em `public.spatial_ref_sys`.
+4. Abra ticket no suporte Supabase com:
+   - Erro `SQLSTATE 42501`
+   - Resultado de owner da tabela (`table_owner`)
+   - Resultado de owner da extensão (`extension_owner`)
+   - Lista de grants remanescentes para `anon` e `authenticated`
+5. Solicite remediação owner-level: habilitar RLS e remover grants de `anon`/`authenticated` na tabela `public.spatial_ref_sys`.
+
+Template sugerido para o ticket:
+
+```text
+Security Advisor reports rls_disabled_in_public on public.spatial_ref_sys.
+Our project role cannot remediate it: SQLSTATE 42501 must be owner of table spatial_ref_sys.
+Current grants still include anon/authenticated privileges.
+Please apply owner-level remediation in this project: enable RLS on public.spatial_ref_sys and remove anon/authenticated table grants.
+```
+
 ### Evidências e Scripts
 
 - Hardening inicial: `supabase/rls_hardening.sql`

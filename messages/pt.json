@@ -150,6 +150,12 @@
     "clearPlaces": "Limpar Todas as Cidades",
     "clearPlacesMessage": "Tem certeza que deseja limpar todas as {count} cidade(s) visitada(s)? Esta ação não pode ser desfeita.",
     "understood": "Entendi",
+    "projectSummaryTitle": "Bem-vindo ao Lugares do Mundo",
+    "projectSummaryDescription": "Este projeto te ajuda a registrar e visualizar no mapa os lugares que você já visitou.",
+    "projectSummaryItem1": "Adicione cidades digitando o nome ou clicando no mapa",
+    "projectSummaryItem2": "Veja estatísticas de cidades e países visitados",
+    "projectSummaryItem3": "Organize seus lugares e acompanhe sua jornada",
+    "projectSummaryFooter": "Este aviso aparece apenas no primeiro acesso.",
     "congratulations": "Parabéns, você visitou seu primeiro país!",
     "migratingSaving": "Salvando seus dados...",
     "migratingMessage": "Estamos sincronizando seus lugares para a nuvem.\nAguarde um momento..."

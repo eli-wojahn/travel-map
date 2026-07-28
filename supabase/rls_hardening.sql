@@ -22,9 +22,10 @@ BEGIN
       TO service_role
       USING (true)
       WITH CHECK (true);
+    RAISE NOTICE 'RLS hardening applied on public.spatial_ref_sys';
   EXCEPTION
     WHEN insufficient_privilege THEN
-      RAISE NOTICE 'Skipping hardening for public.spatial_ref_sys (owner privileges required).';
+      RAISE NOTICE 'Unable to alter public.spatial_ref_sys: current role is not table owner. Open Supabase support ticket and request owner-level remediation.';
   END;
 END
 $$;
@@ -49,3 +50,33 @@ END
 $$;
 
 COMMIT;
+
+-- 3) Diagnostics for extension-owned exception handling
+-- Use this output in the support ticket if Security Advisor still flags spatial_ref_sys.
+SELECT
+  n.nspname AS schema_name,
+  c.relname AS table_name,
+  c.relrowsecurity AS rls_enabled,
+  pg_get_userbyid(c.relowner) AS table_owner
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public'
+  AND c.relname = 'spatial_ref_sys'
+  AND c.relkind = 'r';
+
+SELECT
+  e.extname AS extension_name,
+  pg_get_userbyid(e.extowner) AS extension_owner
+FROM pg_extension e
+WHERE e.extname = 'postgis';
+
+SELECT
+  table_schema,
+  table_name,
+  grantee,
+  privilege_type
+FROM information_schema.role_table_grants
+WHERE table_schema = 'public'
+  AND table_name = 'spatial_ref_sys'
+  AND grantee IN ('anon', 'authenticated')
+ORDER BY grantee, privilege_type;

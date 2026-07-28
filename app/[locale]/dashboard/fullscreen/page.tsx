@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -31,6 +31,8 @@ const DotLottieReact = dynamic(
   { ssr: false }
 );
 
+const FULLSCREEN_WELCOME_MODAL_KEY = 'lugares-do-mundo-welcome-modal-seen-v1';
+
 /**
  * Tela dedicada ao mapa em modo full screen.
  */
@@ -46,6 +48,7 @@ export default function FullscreenMapPage() {
   const [showAnimationModal, setShowAnimationModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(null);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
   const [focusAddedPlaceId, setFocusAddedPlaceId] = useState<string | undefined>(undefined);
@@ -62,6 +65,22 @@ export default function FullscreenMapPage() {
   const openErrorModal = useCallback((message: string) => {
     setModalErrorMessage(message);
     setShowErrorModal(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const hasSeenWelcomeModal = window.localStorage.getItem(FULLSCREEN_WELCOME_MODAL_KEY);
+    if (!hasSeenWelcomeModal) {
+      setShowWelcomeModal(true);
+    }
+  }, []);
+
+  const closeWelcomeModal = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(FULLSCREEN_WELCOME_MODAL_KEY, 'true');
+    }
+    setShowWelcomeModal(false);
   }, []);
 
   const showAddedPlaceFlow = useCallback(
@@ -338,6 +357,30 @@ export default function FullscreenMapPage() {
           )}
         </div>
       </div>
+
+      <Modal
+        isOpen={showWelcomeModal}
+        title={t('modal.projectSummaryTitle')}
+        videoSrc="/roma.mp4"
+        videoClassName="w-full h-64 sm:h-80 md:h-[26rem] max-h-[52vh] object-contain rounded-lg border border-border bg-black/5"
+        contentClassName="max-w-3xl sm:max-w-4xl max-h-[95vh]"
+        message={
+          <div className="space-y-3 text-left">
+            <p>{t('modal.projectSummaryDescription')}</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>{t('modal.projectSummaryItem1')}</li>
+              <li>{t('modal.projectSummaryItem2')}</li>
+              <li>{t('modal.projectSummaryItem3')}</li>
+            </ul>
+            <p>{t('modal.projectSummaryFooter')}</p>
+          </div>
+        }
+        confirmText={t('common.understood')}
+        cancelText=""
+        type="info"
+        onConfirm={closeWelcomeModal}
+        onCancel={closeWelcomeModal}
+      />
 
       <Modal
         isOpen={showAnimationModal}

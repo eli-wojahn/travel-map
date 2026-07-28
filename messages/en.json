@@ -150,6 +150,12 @@
     "clearPlaces": "Clear All Cities",
     "clearPlacesMessage": "Are you sure you want to clear all {count} visited city(s)? This action cannot be undone.",
     "understood": "Got it",
+    "projectSummaryTitle": "Welcome to Places of the World",
+    "projectSummaryDescription": "This project helps you track and visualize places you have visited on the map.",
+    "projectSummaryItem1": "Add cities by typing a name or clicking on the map",
+    "projectSummaryItem2": "See city and country visit statistics",
+    "projectSummaryItem3": "Organize your places and follow your journey",
+    "projectSummaryFooter": "This notice appears only on your first visit.",
     "congratulations": "Congratulations, you visited your first country!",
     "migratingSaving": "Saving your data...",
     "migratingMessage": "We're syncing your places to the cloud.\nPlease wait..."

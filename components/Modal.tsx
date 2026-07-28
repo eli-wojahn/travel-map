@@ -14,6 +14,8 @@ interface ModalProps {
   children?: ReactNode;
   hideButtons?: boolean;
   videoSrc?: string;
+  videoClassName?: string;
+  contentClassName?: string;
 }
 
 /**
@@ -31,6 +33,8 @@ export default function Modal({
   children,
   hideButtons = false,
   videoSrc,
+  videoClassName,
+  contentClassName,
 }: ModalProps) {
   if (!isOpen) return null;
 
@@ -57,8 +61,10 @@ export default function Modal({
   const colors = getColorClasses();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-card text-card-foreground border border-border rounded-lg shadow-xl max-w-md w-full mx-4 p-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[2000]">
+      <div
+        className={`bg-card text-card-foreground border border-border rounded-lg shadow-xl max-w-md w-full mx-4 p-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200 ${contentClassName || ''}`}
+      >
         {/* Ícone ou Vídeo */}
         {title && (
           <div className="flex items-center justify-center mx-auto mb-4">
@@ -68,7 +74,7 @@ export default function Modal({
                 loop
                 muted
                 playsInline
-                className="w-24 h-24 object-contain"
+                className={videoClassName || 'w-24 h-24 object-contain'}
               >
                 <source src={videoSrc} type="video/mp4" />
               </video>
