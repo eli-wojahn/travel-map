@@ -14,7 +14,7 @@ export function getThemeInitScript() {
     var mediaQuery = ${safeMediaQuery};
     var storedTheme = localStorage.getItem(storageKey);
     var isValidTheme = storedTheme === 'system' || storedTheme === 'light' || storedTheme === 'dark';
-    var themePreference = isValidTheme ? storedTheme : 'system';
+    var themePreference = isValidTheme ? storedTheme : 'light';
     var systemDark = window.matchMedia(mediaQuery).matches;
     var resolvedTheme = themePreference === 'system' ? (systemDark ? 'dark' : 'light') : themePreference;
     var root = document.documentElement;

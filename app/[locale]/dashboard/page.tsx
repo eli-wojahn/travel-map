@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,8 @@ import LoadingPlane from '@/components/LoadingPlane';
 import { getCanonicalCountryName, getLocalizedCountryName, normalizeCountryCode } from '@/lib/country';
 import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
 import { Place } from '@/types';
+
+const THEME_SWITCHER_UNLOCK_COUNTRIES = 50;
 
 function MapLoading() {
   const t = useTranslations('map');
@@ -62,6 +64,24 @@ export default function DashboardPage() {
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
   const [isMigrating, setIsMigrating] = useState(false);
   const [isMapComponentReady, setIsMapComponentReady] = useState(false);
+  const visitedCountriesCount = useMemo(() => {
+    const countries = new Set<string>();
+
+    places.forEach((place) => {
+      if (place.countryCode) {
+        countries.add(`code:${place.countryCode.trim().toUpperCase()}`);
+        return;
+      }
+
+      const normalizedCountry = place.country?.trim().toLowerCase();
+      if (normalizedCountry) {
+        countries.add(`name:${normalizedCountry}`);
+      }
+    });
+
+    return countries.size;
+  }, [places]);
+  const shouldShowThemeSwitcher = visitedCountriesCount >= THEME_SWITCHER_UNLOCK_COUNTRIES;
   const localizedRecentlyAddedCountry = recentlyAddedPlace
     ? getLocalizedCountryName({
         country: recentlyAddedPlace.country,
@@ -342,7 +362,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2 pl-2">
-                <ThemeSwitcher />
+                {shouldShowThemeSwitcher && <ThemeSwitcher />}
                 <LanguageSwitcher />
               </div>
             </div>
@@ -403,7 +423,7 @@ export default function DashboardPage() {
           {/* Desktop: Layout horizontal original */}
           <div className="hidden lg:flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ThemeSwitcher />
+              {shouldShowThemeSwitcher && <ThemeSwitcher />}
               <LanguageSwitcher />
             </div>
             <div className="text-center flex-1">

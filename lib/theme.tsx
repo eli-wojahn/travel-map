@@ -37,14 +37,14 @@ function getSystemTheme(): ResolvedTheme {
 
 function getStoredThemePreference(): ThemePreference {
   if (typeof window === 'undefined') {
-    return 'system';
+    return 'light';
   }
 
   try {
     const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-    return isThemePreference(storedTheme) ? storedTheme : 'system';
+    return isThemePreference(storedTheme) ? storedTheme : 'light';
   } catch {
-    return 'system';
+    return 'light';
   }
 }
 
@@ -67,7 +67,7 @@ function resolveTheme(themePreference: ThemePreference, systemTheme: ResolvedThe
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemePreference>('system');
+  const [theme, setThemeState] = useState<ThemePreference>('light');
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>('light');
   const [isReady, setIsReady] = useState(false);
 

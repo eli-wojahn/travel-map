@@ -116,7 +116,7 @@ describe('useTheme', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 
-  it('ignora valor invalido salvo e volta para system', async () => {
+  it('ignora valor invalido salvo e volta para light', async () => {
     const media = createMatchMediaMock(false);
     vi.stubGlobal('matchMedia', media.matchMedia);
     localStorage.setItem(THEME_STORAGE_KEY, 'neon' as string);
@@ -127,8 +127,8 @@ describe('useTheme', () => {
 
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
-    expect(result.current.theme).toBe('system');
+    expect(result.current.theme).toBe('light');
     expect(result.current.resolvedTheme).toBe('light');
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('system');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
   });
 });
