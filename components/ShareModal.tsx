@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import ShareCard from './ShareCard';
 import CanvasPreview from './CanvasPreview';
+import LoadingPlane from './LoadingPlane';
 import { Place } from '@/types';
 import { useShareImage } from '@/hooks/useShareImage';
 
@@ -194,7 +195,13 @@ export default function ShareModal({ isOpen, onClose, places }: ShareModalProps)
           >
             {isGenerating ? (
               <>
-                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <LoadingPlane
+                  size="sm"
+                  hideLabel
+                  ariaLabel={t('generating')}
+                  className="gap-0"
+                  videoClassName="rounded"
+                />
                 <span className="text-xs sm:text-base">{t('generating')}</span>
               </>
             ) : (

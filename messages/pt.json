@@ -15,7 +15,7 @@
     "or": "ou"
   },
   "metadata": {
-    "title": "Lugares do Mundo - Mapa de Cidades Visitadas",
+    "title": "My Travel Map - Mapa de Cidades Visitadas",
     "description": "Marque e visualize todos os lugares que você já visitou no mundo"
   },
   "auth": {
@@ -150,7 +150,7 @@
     "clearPlaces": "Limpar Todas as Cidades",
     "clearPlacesMessage": "Tem certeza que deseja limpar todas as {count} cidade(s) visitada(s)? Esta ação não pode ser desfeita.",
     "understood": "Entendi",
-    "projectSummaryTitle": "Bem-vindo ao Lugares do Mundo",
+    "projectSummaryTitle": "Bem-vindo ao My Travel Map!",
     "projectSummaryDescription": "Este projeto te ajuda a registrar e visualizar no mapa os lugares que você já visitou.",
     "projectSummaryItem1": "Adicione cidades digitando o nome ou clicando no mapa",
     "projectSummaryItem2": "Veja estatísticas de cidades e países visitados",

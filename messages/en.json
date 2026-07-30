@@ -15,7 +15,7 @@
     "or": "or"
   },
   "metadata": {
-    "title": "Places of the World - Visited Cities Map",
+    "title": "My Travel Map - Visited Cities Map",
     "description": "Mark and visualize all the places you've visited around the world"
   },
   "auth": {
@@ -119,9 +119,9 @@
     "tipCopy": "💡 Tip: Use \"Copy\" to paste directly on WhatsApp or Instagram!",
     "cardTitle": "My Travel map",
     "cardSubtitle": "Mapping my adventures around the planet",
-    "cardFooter": "🌐 Places of the World • Created in {year}",
+    "cardFooter": "🌐 My Travel Map • Created in {year}",
     "fileNameBase": "my-places",
-    "nativeShareTitle": "My Places in the World",
+    "nativeShareTitle": "My Travel Map",
     "nativeShareText": "Check out the places I have already visited around the world! 🌍",
     "errorElementNotFound": "Element not found",
     "errorGenerateImage": "Failed to generate image",
@@ -150,7 +150,7 @@
     "clearPlaces": "Clear All Cities",
     "clearPlacesMessage": "Are you sure you want to clear all {count} visited city(s)? This action cannot be undone.",
     "understood": "Got it",
-    "projectSummaryTitle": "Welcome to Places of the World",
+    "projectSummaryTitle": "Welcome to My Travel Map!",
     "projectSummaryDescription": "This project helps you track and visualize places you have visited on the map.",
     "projectSummaryItem1": "Add cities by typing a name or clicking on the map",
     "projectSummaryItem2": "See city and country visit statistics",

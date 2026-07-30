@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase-browser';
 import { useRouter } from 'next/navigation';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import LoadingPlane from '@/components/LoadingPlane';
 
 /**
  * Página de Login com Google OAuth
@@ -116,7 +117,12 @@ export default function LoginPage() {
         >
           {isLoading ? (
             <>
-              <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+              <LoadingPlane
+                size="sm"
+                hideLabel
+                ariaLabel={t('auth.connecting')}
+                className="gap-0"
+              />
               {t('auth.connecting')}
             </>
           ) : (

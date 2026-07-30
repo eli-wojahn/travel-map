@@ -4,6 +4,7 @@ import { useState, FormEvent, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { geocodeCity } from '@/lib/geocoding';
 import { Place } from '@/types';
+import LoadingPlane from '@/components/LoadingPlane';
 
 interface CityInputProps {
   onAddPlace: (place: Omit<Place, 'id' | 'createdAt'>) => Promise<boolean> | boolean;
@@ -102,9 +103,12 @@ export default function CityInput({ onAddPlace, onError, compact = false, compac
       >
         {isLoading ? (
           compact ? (
-            <span
-              className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"
-              aria-label={t('dashboard.searching')}
+            <LoadingPlane
+              size="sm"
+              hideLabel
+              ariaLabel={t('dashboard.searching')}
+              className="gap-0"
+              videoClassName="rounded"
             />
           ) : (
             t('dashboard.searching')

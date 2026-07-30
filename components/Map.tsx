@@ -7,6 +7,7 @@ import L from 'leaflet';
 import { Place } from '@/types';
 import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
 import { getLocalizedCountryName } from '@/lib/country';
+import LoadingPlane from '@/components/LoadingPlane';
 import 'leaflet/dist/leaflet.css';
 
 // Fix para ícones padrão do Leaflet no Next.js
@@ -323,16 +324,16 @@ export default function Map({
   const defaultZoom = initialZoom ?? minZoom;
   const wrapperClassName = fullscreen
     ? 'w-full h-[100dvh]'
-    : 'w-full rounded-lg overflow-hidden border border-gray-300 h-[400px] sm:h-[600px]';
+    : 'w-full rounded-lg overflow-hidden border border-border h-[400px] sm:h-[600px]';
   const loadingClassName = fullscreen
-    ? 'w-full h-[100dvh] border border-gray-300 flex items-center justify-center bg-gray-100'
-    : 'w-full h-[400px] sm:h-[600px] rounded-lg border border-gray-300 flex items-center justify-center bg-gray-100';
+    ? 'w-full h-[100dvh] border border-border flex items-center justify-center bg-white'
+    : 'w-full h-[400px] sm:h-[600px] rounded-lg border border-border flex items-center justify-center bg-white';
 
   // Não renderiza até estar montado no cliente
   if (!isMounted) {
     return (
       <div className={loadingClassName}>
-        <p className="text-gray-500">{t('loadingMap')}</p>
+        <LoadingPlane label={t('loadingMap')} size="lg" />
       </div>
     );
   }

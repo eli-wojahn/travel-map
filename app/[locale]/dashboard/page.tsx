@@ -16,6 +16,7 @@ import Modal from '@/components/Modal';
 import ShareModal from '@/components/ShareModal';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
+import LoadingPlane from '@/components/LoadingPlane';
 import { getCanonicalCountryName, getLocalizedCountryName, normalizeCountryCode } from '@/lib/country';
 import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
 import { Place } from '@/types';
@@ -24,8 +25,8 @@ function MapLoading() {
   const t = useTranslations('map');
 
   return (
-    <div className="w-full h-full min-h-[600px] rounded-lg border border-border flex items-center justify-center bg-muted">
-      <p className="text-muted-foreground">{t('loadingMap')}</p>
+    <div className="w-full h-full min-h-[600px] rounded-lg border border-border flex items-center justify-center bg-white">
+      <LoadingPlane label={t('loadingMap')} size="lg" />
     </div>
   );
 }
@@ -60,6 +61,7 @@ export default function DashboardPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
   const [isMigrating, setIsMigrating] = useState(false);
+  const [isMapComponentReady, setIsMapComponentReady] = useState(false);
   const localizedRecentlyAddedCountry = recentlyAddedPlace
     ? getLocalizedCountryName({
         country: recentlyAddedPlace.country,
@@ -185,6 +187,27 @@ export default function DashboardPage() {
     };
   }, []);
 
+  // Garante que o módulo do mapa esteja carregado antes de renderizar o dashboard.
+  useEffect(() => {
+    let isActive = true;
+
+    import('@/components/Map')
+      .then(() => {
+        if (isActive) {
+          setIsMapComponentReady(true);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setIsMapComponentReady(true);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
   const handleAddPlace = useCallback(
     async (place: Omit<Place, 'id' | 'createdAt'>) => {
       const isFirstPlace = places.length === 0;
@@ -294,13 +317,10 @@ export default function DashboardPage() {
     router.push(`/${locale}/login`);
   };
 
-  if (isLoadingAuth) {
+  if (isLoadingAuth || isLoading || !isMapComponentReady) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-border border-t-primary rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">{t('common.loading')}</p>
-        </div>
+        <LoadingPlane label={t('common.loading')} size="lg" />
       </div>
     );
   }
@@ -463,8 +483,8 @@ export default function DashboardPage() {
         {/* Mapa */}
         <div className="mb-6 max-w-6xl mx-auto">
           {isLoading ? (
-            <div className="w-full h-full min-h-[400px] sm:min-h-[600px] rounded-lg border border-border flex items-center justify-center bg-muted">
-              <p className="text-muted-foreground">{t('dashboard.loadingPlaces')}</p>
+            <div className="w-full h-full min-h-[400px] sm:min-h-[600px] rounded-lg border border-border flex items-center justify-center bg-white">
+              <LoadingPlane label={t('dashboard.loadingPlaces')} size="lg" />
             </div>
           ) : (
             <Map places={places} onMapClick={handleMapClick} />
@@ -566,10 +586,7 @@ export default function DashboardPage() {
           title={t('modal.migratingSaving')}
           message={
             <div className="flex flex-col items-center justify-center py-4">
-              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4" />
-              <p className="text-muted-foreground text-center">
-                {t('modal.migratingMessage')}
-              </p>
+              <LoadingPlane label={t('modal.migratingMessage')} size="lg" />
             </div>
           }
           confirmText=""

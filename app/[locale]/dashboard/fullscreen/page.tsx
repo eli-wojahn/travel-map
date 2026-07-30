@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { usePlaces } from '@/hooks/usePlaces';
 import CityInput from '@/components/CityInput';
 import Modal from '@/components/Modal';
+import LoadingPlane from '@/components/LoadingPlane';
 import { getCanonicalCountryName, getLocalizedCountryName, normalizeCountryCode } from '@/lib/country';
 import { getCountryFlag, getCountryFlagByCode } from '@/lib/countryFlags';
 import { Place } from '@/types';
@@ -15,8 +16,8 @@ function MapLoading() {
   const t = useTranslations('map');
 
   return (
-    <div className="w-full h-[100dvh] border border-border flex items-center justify-center bg-muted">
-      <p className="text-muted-foreground">{t('loadingMap')}</p>
+    <div className="w-full h-[100dvh] border border-border flex items-center justify-center bg-white">
+      <LoadingPlane label={t('loadingMap')} size="lg" />
     </div>
   );
 }
@@ -52,6 +53,7 @@ export default function FullscreenMapPage() {
   const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(null);
   const [recentlyAddedPlace, setRecentlyAddedPlace] = useState<Place | null>(null);
   const [focusAddedPlaceId, setFocusAddedPlaceId] = useState<string | undefined>(undefined);
+  const [isMapComponentReady, setIsMapComponentReady] = useState(false);
   const localizedRecentlyAddedCountry = recentlyAddedPlace
     ? getLocalizedCountryName({
         country: recentlyAddedPlace.country,
@@ -74,6 +76,26 @@ export default function FullscreenMapPage() {
     if (!hasSeenWelcomeModal) {
       setShowWelcomeModal(true);
     }
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    import('@/components/Map')
+      .then(() => {
+        if (isActive) {
+          setIsMapComponentReady(true);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setIsMapComponentReady(true);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const closeWelcomeModal = useCallback(() => {
@@ -162,55 +184,59 @@ export default function FullscreenMapPage() {
     [addPlace, openErrorModal, places.length, showAddedPlaceFlow, t]
   );
 
+  if (isLoading || !isMapComponentReady) {
+    return (
+      <main className="relative h-[100dvh] w-full bg-background overflow-hidden">
+        <div className="w-full h-[100dvh] border border-border flex items-center justify-center bg-white">
+          <LoadingPlane label={t('dashboard.loadingPlaces')} size="lg" />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="relative h-[100dvh] w-full bg-background overflow-hidden">
-      {isLoading ? (
-        <div className="w-full h-[100dvh] border border-border flex items-center justify-center bg-muted">
-          <p className="text-muted-foreground">{t('dashboard.loadingPlaces')}</p>
-        </div>
-      ) : (
-        <Map
-          places={places}
-          onMapClick={handleMapClick}
-          fullscreen
-          initialCenter={[50, 10]}
-          initialZoom={5}
-          focusMode="majority-continent"
-          focusAddedPlaceId={focusAddedPlaceId}
-          locateUserRequestId={locateUserRequestId}
-          onLocateUserResult={(result) => {
-            setIsLocatingUser(false);
+      <Map
+        places={places}
+        onMapClick={handleMapClick}
+        fullscreen
+        initialCenter={[50, 10]}
+        initialZoom={5}
+        focusMode="majority-continent"
+        focusAddedPlaceId={focusAddedPlaceId}
+        locateUserRequestId={locateUserRequestId}
+        onLocateUserResult={(result) => {
+          setIsLocatingUser(false);
 
-            if (result.ok) {
-              setFeedback(t('dashboard.locationCentered'));
-              setTimeout(() => setFeedback(null), 2500);
-              return;
-            }
+          if (result.ok) {
+            setFeedback(t('dashboard.locationCentered'));
+            setTimeout(() => setFeedback(null), 2500);
+            return;
+          }
 
-            if (result.error === 'UNSUPPORTED') {
-              setFeedback(t('dashboard.locationUnsupported'));
-              return;
-            }
+          if (result.error === 'UNSUPPORTED') {
+            setFeedback(t('dashboard.locationUnsupported'));
+            return;
+          }
 
-            if (result.error === 'PERMISSION_DENIED') {
-              setFeedback(t('dashboard.locationPermissionDenied'));
-              return;
-            }
+          if (result.error === 'PERMISSION_DENIED') {
+            setFeedback(t('dashboard.locationPermissionDenied'));
+            return;
+          }
 
-            if (result.error === 'POSITION_UNAVAILABLE') {
-              setFeedback(t('dashboard.locationUnavailable'));
-              return;
-            }
+          if (result.error === 'POSITION_UNAVAILABLE') {
+            setFeedback(t('dashboard.locationUnavailable'));
+            return;
+          }
 
-            if (result.error === 'TIMEOUT') {
-              setFeedback(t('dashboard.locationTimeout'));
-              return;
-            }
+          if (result.error === 'TIMEOUT') {
+            setFeedback(t('dashboard.locationTimeout'));
+            return;
+          }
 
-            setFeedback(t('errors.errorFetchingLocation'));
-          }}
-        />
-      )}
+          setFeedback(t('errors.errorFetchingLocation'));
+        }}
+      />
 
       <div className="absolute bottom-3 left-3 z-40 flex flex-col gap-2 items-start pointer-events-none lg:hidden">
         <button
@@ -243,7 +269,12 @@ export default function FullscreenMapPage() {
           className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isLocatingUser ? (
-            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <LoadingPlane
+              size="sm"
+              hideLabel
+              ariaLabel={t('dashboard.locatingUser')}
+              className="gap-0"
+            />
           ) : (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -285,7 +316,12 @@ export default function FullscreenMapPage() {
           className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isLocatingUser ? (
-            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <LoadingPlane
+              size="sm"
+              hideLabel
+              ariaLabel={t('dashboard.locatingUser')}
+              className="gap-0"
+            />
           ) : (
             <svg
               xmlns="http://www.w3.org/2000/svg"

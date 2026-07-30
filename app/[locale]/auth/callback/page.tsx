@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { createClient } from '@/lib/supabase-browser';
 import { useRouter } from 'next/navigation';
+import LoadingPlane from '@/components/LoadingPlane';
 
 /**
  * Página de callback do OAuth
@@ -71,7 +72,12 @@ export default function AuthCallbackPage() {
       <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center">
         {status === 'loading' && (
           <>
-            <div className="w-16 h-16 border-4 border-gray-200 border-t-orange rounded-full animate-spin mx-auto mb-4" />
+            <LoadingPlane
+              size="lg"
+              hideLabel
+              ariaLabel={t('auth.processing')}
+              className="gap-0 mx-auto mb-4"
+            />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {t('auth.processing')}
             </h2>
