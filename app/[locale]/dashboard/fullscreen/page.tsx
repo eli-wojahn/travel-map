@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePlaces } from '@/hooks/usePlaces';
@@ -349,6 +350,17 @@ export default function FullscreenMapPage() {
         >
           <span className="text-xl leading-none">{localeFlag}</span>
         </button>
+      </div>
+
+      <div className="pointer-events-none absolute bottom-4 left-1/2 z-40 -translate-x-1/2">
+        <Image
+          src="/logo1.png"
+          alt={t('dashboard.title')}
+          width={180}
+          height={59}
+          priority
+          className="h-auto w-[180px] max-w-[70vw] opacity-95 drop-shadow-md"
+        />
       </div>
 
       <div className="absolute top-3 left-16 right-3 z-[1000] pointer-events-none lg:hidden">

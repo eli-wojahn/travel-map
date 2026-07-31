@@ -354,12 +354,14 @@ export default function DashboardPage() {
           <div className="lg:hidden">
             <div className="flex items-center justify-between mb-4">
               <div className="text-center flex-1">
-                <h1 className="text-3xl font-bold text-foreground mb-1">
-                  {t('dashboard.title')}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {t('dashboard.subtitle')}
-                </p>
+                <Image
+                  src="/logo1.png"
+                  alt={t('dashboard.title')}
+                  width={220}
+                  height={72}
+                  priority
+                  className="mx-auto h-auto w-[220px] max-w-full"
+                />
               </div>
               <div className="flex items-center gap-2 pl-2">
                 {shouldShowThemeSwitcher && <ThemeSwitcher />}
@@ -421,23 +423,25 @@ export default function DashboardPage() {
           </div>
 
           {/* Desktop: Layout horizontal original */}
-          <div className="hidden lg:flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="hidden lg:grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
+            <div className="flex items-center gap-2 justify-self-start">
               {shouldShowThemeSwitcher && <ThemeSwitcher />}
               <LanguageSwitcher />
             </div>
-            <div className="text-center flex-1">
-              <h1 className="text-4xl font-bold text-foreground mb-2">
-                {t('dashboard.title')}
-              </h1>
-              <p className="text-muted-foreground">
-                {t('dashboard.subtitle')}
-              </p>
+            <div className="justify-self-center text-center">
+              <Image
+                src="/logo1.png"
+                alt={t('dashboard.title')}
+                width={320}
+                height={104}
+                priority
+                className="mx-auto h-auto w-[320px] max-w-full"
+              />
             </div>
             
             {/* Modo Guest - Botão de Salvar (Desktop) */}
             {!user && isGuestMode && (
-              <div className="bg-orange/10 border-2 border-orange/30 rounded-lg p-4 ml-4">
+              <div className="justify-self-end bg-orange/10 border-2 border-orange/30 rounded-lg p-4">
                 <div className="flex items-center gap-4">
                   <div>
                     <p className="text-sm font-medium text-orange/90 mb-1">
@@ -460,7 +464,7 @@ export default function DashboardPage() {
             
             {/* Modo Autenticado - Info do usuário (Desktop) */}
             {user && (
-              <div className="flex items-center gap-4">
+              <div className="justify-self-end flex items-center gap-4">
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">{t('auth.hello')}</p>
                   <p className="font-medium text-foreground">
