@@ -7,6 +7,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePlaces } from '@/hooks/usePlaces';
 import CityInput from '@/components/CityInput';
+import CityList from '@/components/CityList';
+import Statistics from '@/components/Statistics';
 import Modal from '@/components/Modal';
 import LoadingPlane from '@/components/LoadingPlane';
 import { getCanonicalCountryName, getLocalizedCountryName, normalizeCountryCode } from '@/lib/country';
@@ -43,7 +45,8 @@ export default function FullscreenMapPage() {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const { places, isLoading, addPlace, removePlace } = usePlaces();
+  const { places, isLoading, addPlace, removePlace, reorderPlaces } = usePlaces();
+  const [activePanel, setActivePanel] = useState<'cities' | 'statistics' | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isLocatingUser, setIsLocatingUser] = useState(false);
   const [locateUserRequestId, setLocateUserRequestId] = useState(0);
@@ -104,6 +107,19 @@ export default function FullscreenMapPage() {
       window.localStorage.setItem(FULLSCREEN_WELCOME_MODAL_KEY, 'true');
     }
     setShowWelcomeModal(false);
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActivePanel(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
   }, []);
 
   const showAddedPlaceFlow = useCallback(
@@ -239,7 +255,7 @@ export default function FullscreenMapPage() {
         }}
       />
 
-      <div className="absolute bottom-3 left-3 z-40 flex flex-col gap-2 items-start pointer-events-none lg:hidden">
+      <div className="absolute bottom-3 right-3 z-40 flex flex-col gap-2 items-end pointer-events-none lg:hidden">
         <button
           onClick={() => router.push(`/${locale}/dashboard`)}
           aria-label="Dashboard"
@@ -361,6 +377,111 @@ export default function FullscreenMapPage() {
           priority
           className="h-auto w-[180px] max-w-[70vw] opacity-95 drop-shadow-md"
         />
+      </div>
+
+      <div className="absolute bottom-3 left-3 z-40 pointer-events-none">
+        <div className="pointer-events-auto inline-flex flex-col items-start gap-2">
+          <button
+            onClick={() => setActivePanel((prev) => (prev === 'cities' ? null : 'cities'))}
+            aria-label={t('statistics.cities')}
+            title={t('statistics.cities')}
+            aria-pressed={activePanel === 'cities'}
+            className={`h-11 w-11 sm:h-12 sm:w-12 rounded-lg border border-border shadow-md transition-colors flex items-center justify-center ${
+              activePanel === 'cities'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card text-card-foreground hover:bg-muted'
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 20h16" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 20V9h5v11" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 20V4h5v16" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h1m0 3h1m6-6h1m0 3h1" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setActivePanel((prev) => (prev === 'statistics' ? null : 'statistics'))}
+            aria-label={t('statistics.title')}
+            title={t('statistics.title')}
+            aria-pressed={activePanel === 'statistics'}
+            className={`h-11 w-11 sm:h-12 sm:w-12 rounded-lg border border-border shadow-md transition-colors flex items-center justify-center ${
+              activePanel === 'statistics'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card text-card-foreground hover:bg-muted'
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 20h16" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 20v-6" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 20v-10" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20v-14" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div
+        onClick={() => setActivePanel(null)}
+        className={`fixed inset-0 z-[1050] bg-black/55 backdrop-blur-[1px] transition-opacity duration-300 ${
+          activePanel ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      />
+
+      <div
+        className={`fixed inset-0 z-[1060] flex items-center justify-center p-3 md:p-6 transition-all duration-300 ${
+          activePanel ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      >
+        <div
+          className={`w-full max-w-[560px] max-h-[75dvh] rounded-2xl border border-border bg-card shadow-2xl transition-all duration-300 md:max-h-[calc(100dvh-7.5rem)] ${
+            activePanel ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <h2 className="text-base sm:text-lg font-semibold">
+              {activePanel === 'statistics' ? t('statistics.title') : t('cities.visitedCities')}
+            </h2>
+            <button
+              onClick={() => setActivePanel(null)}
+              className="h-9 w-9 rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+              aria-label={t('common.close')}
+              title={t('common.close')}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="mx-auto h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="h-[calc(75dvh-4.25rem)] overflow-auto p-4 md:h-[calc(100%-4.25rem)]">
+            {activePanel === 'statistics' ? (
+              <Statistics places={places} />
+            ) : (
+              <CityList places={places} onRemovePlace={removePlace} onReorderPlaces={reorderPlaces} />
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="absolute top-3 left-16 right-3 z-[1000] pointer-events-none lg:hidden">
