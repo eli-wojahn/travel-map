@@ -330,10 +330,6 @@ export default function DashboardPage() {
 
   // Handler para o botão de salvar/login
   const handleSaveToCloud = () => {
-    if (places.length === 0) {
-      setError(t('errors.addCitiesBeforeLogin'));
-      return;
-    }
     router.push(`/${locale}/login`);
   };
 
@@ -352,8 +348,12 @@ export default function DashboardPage() {
         <header className="mb-6 sm:mb-8">
           {/* Mobile: Layout vertical */}
           <div className="lg:hidden">
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-center flex-1">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center mb-4 gap-2">
+              <div className="flex items-center gap-2 justify-self-start">
+                <LanguageSwitcher />
+                {shouldShowThemeSwitcher && <ThemeSwitcher />}
+              </div>
+              <div className="text-center justify-self-center">
                 <Image
                   src="/logo1.png"
                   alt={t('dashboard.title')}
@@ -363,34 +363,18 @@ export default function DashboardPage() {
                   className="mx-auto h-auto w-[220px] max-w-full"
                 />
               </div>
-              <div className="flex items-center gap-2 pl-2">
-                {shouldShowThemeSwitcher && <ThemeSwitcher />}
-                <LanguageSwitcher />
-              </div>
-            </div>
-            
-            {/* Modo Guest - Botão de Salvar */}
-            {!user && isGuestMode && (
-              <div className="bg-orange/10 border-2 border-orange/30 rounded-lg p-3 mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-orange/90 mb-1">
-                      {t('auth.guestModeShort')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t('auth.loginToSync')}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-2 justify-self-end">
+                {!user && isGuestMode && (
                   <button
                     onClick={handleSaveToCloud}
-                    disabled={places.length === 0}
-                    className="px-4 py-2 bg-green text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    title="Faça login para acessar a lista em todos os dispositivos."
+                    className="px-4 py-2 bg-green text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm whitespace-nowrap"
                   >
                     {places.length > 0 ? `💾 ${t('common.save')}` : t('auth.login')}
                   </button>
-                </div>
+                )}
               </div>
-            )}
+            </div>
             
             {/* Modo Autenticado - Info do usuário */}
             {user && (
@@ -441,24 +425,14 @@ export default function DashboardPage() {
             
             {/* Modo Guest - Botão de Salvar (Desktop) */}
             {!user && isGuestMode && (
-              <div className="justify-self-end bg-orange/10 border-2 border-orange/30 rounded-lg p-4">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-orange/90 mb-1">
-                      {t('auth.guestModeShort')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t('auth.guestModeDescription')}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleSaveToCloud}
-                    disabled={places.length === 0}
-                    className="px-6 py-2.5 bg-green text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                  >
-                    {places.length > 0 ? t('auth.loginAndSave') : t('auth.login')}
-                  </button>
-                </div>
+              <div className="justify-self-end">
+                <button
+                  onClick={handleSaveToCloud}
+                  title="Faça login para acessar a lista em todos os dispositivos."
+                  className="px-6 py-2.5 bg-green text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm whitespace-nowrap"
+                >
+                  {places.length > 0 ? t('auth.loginAndSave') : t('auth.login')}
+                </button>
               </div>
             )}
             
