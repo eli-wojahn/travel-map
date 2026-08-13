@@ -168,8 +168,8 @@ export default function CityList({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <Collapsible.Root open={open} onOpenChange={setOpen}>
+    <div className="flex h-full min-h-0 flex-col">
+      <Collapsible.Root open={open} onOpenChange={setOpen} className="flex h-full min-h-0 flex-col">
         {showTitle && (
           <div className="mb-4">
             <h3 className="font-semibold text-lg">{t('cities.visitedCities')}</h3>
@@ -177,7 +177,7 @@ export default function CityList({
         )}
         <Collapsible.Content
           forceMount
-          className={`flex-1 overflow-auto ${places.length > 6 && !open ? 'pb-5' : ''}`}
+          className={`min-h-0 flex-1 overflow-y-auto ${places.length > 6 && !open ? 'pb-5' : ''}`}
         >
         <DndContext
           sensors={sensors}

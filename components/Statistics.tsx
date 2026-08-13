@@ -78,7 +78,7 @@ export default function Statistics({ places, onShareClick, showTitle = true }: S
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-h-0 flex-col">
       {(showTitle || onShareClick) && (
         <div className="flex items-center justify-between mb-4">
           {showTitle ? (
@@ -115,13 +115,13 @@ export default function Statistics({ places, onShareClick, showTitle = true }: S
 
       {/* Lista de países visitados */}
       {stats.totalCountries > 0 && (
-        <Collapsible.Root open={openCountries} onOpenChange={setOpenCountries}>
+        <Collapsible.Root open={openCountries} onOpenChange={setOpenCountries} className="flex min-h-0 flex-1 flex-col">
           <div className="mb-2">
             <h4 className="font-medium text-muted-foreground">{t('statistics.visitedCountries')}</h4>
           </div>
           <Collapsible.Content
             forceMount
-            className={`flex-1 overflow-auto ${stats.totalCountries > 8 && !openCountries ? 'pb-10' : ''}`}
+            className={`min-h-0 flex-1 overflow-y-auto ${stats.totalCountries > 8 && !openCountries ? 'pb-10' : ''}`}
           >
             <div className="space-y-2">
               {(openCountries || stats.totalCountries <= 8

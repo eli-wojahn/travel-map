@@ -435,7 +435,7 @@ export default function FullscreenMapPage() {
         }`}
       >
         <div
-          className={`w-full max-w-[560px] max-h-[75dvh] rounded-2xl border border-border bg-card shadow-2xl transition-all duration-300 md:max-h-[calc(100dvh-7.5rem)] ${
+          className={`flex h-[75dvh] w-full max-w-[560px] flex-col rounded-2xl border border-border bg-card shadow-2xl transition-all duration-300 md:h-[calc(100dvh-7.5rem)] ${
             activePanel ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
           }`}
         >
@@ -462,7 +462,7 @@ export default function FullscreenMapPage() {
             </button>
           </div>
 
-          <div className="h-[calc(75dvh-4.25rem)] overflow-auto p-4 md:h-[calc(100%-4.25rem)]">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
             {activePanel === 'statistics' ? (
               <Statistics places={places} showTitle={false} />
             ) : (
