@@ -10,13 +10,14 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 interface StatisticsProps {
   places: Place[];
   onShareClick?: () => void;
+  showTitle?: boolean;
 }
 
 /**
  * Componente que exibe estatísticas sobre os lugares visitados
  * Mostra total de cidades, países visitados e lista de países
  */
-export default function Statistics({ places, onShareClick }: StatisticsProps) {
+export default function Statistics({ places, onShareClick, showTitle = true }: StatisticsProps) {
   const t = useTranslations();
   const locale = useLocale();
   const [openCountries, setOpenCountries] = useState(false);
@@ -78,21 +79,27 @@ export default function Statistics({ places, onShareClick }: StatisticsProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-lg">
-          {t('statistics.title')}
-        </h3>
-        {onShareClick && (
-          <button
-            onClick={onShareClick}
-            className="flex items-center gap-2 px-4 py-2 bg-orange hover:bg-orange-600 text-white rounded-lg transition-colors text-sm font-medium"
-            title={t('statistics.share')}
-          >
-            <span>📤</span>
-            <span>{t('statistics.share')}</span>
-          </button>
-        )}
-      </div>
+      {(showTitle || onShareClick) && (
+        <div className="flex items-center justify-between mb-4">
+          {showTitle ? (
+            <h3 className="font-semibold text-lg">
+              {t('statistics.title')}
+            </h3>
+          ) : (
+            <div />
+          )}
+          {onShareClick && (
+            <button
+              onClick={onShareClick}
+              className="flex items-center gap-2 px-4 py-2 bg-orange hover:bg-orange-600 text-white rounded-lg transition-colors text-sm font-medium"
+              title={t('statistics.share')}
+            >
+              <span>📤</span>
+              <span>{t('statistics.share')}</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Cards de estatísticas principais */}
       <div className="grid grid-cols-2 gap-4 mb-4">

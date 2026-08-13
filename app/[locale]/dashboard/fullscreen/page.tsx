@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -36,6 +36,47 @@ const DotLottieReact = dynamic(
 );
 
 const FULLSCREEN_WELCOME_MODAL_KEY = 'lugares-do-mundo-welcome-modal-seen-v1';
+
+function AnimatedIcon({ src, className = 'h-7 w-7 scale-[1.35]' }: { src: string; className?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const resetToFirstFrame = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.pause();
+    video.currentTime = 0;
+  };
+
+  const playAnimation = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    void video.play().catch(() => {
+      // Ignore autoplay restrictions; icon remains static when play is blocked.
+    });
+  };
+
+  return (
+    <span
+      className="inline-flex h-8 w-8 items-center justify-center overflow-hidden"
+      onMouseEnter={playAnimation}
+      onMouseLeave={resetToFirstFrame}
+      onFocus={playAnimation}
+      onBlur={resetToFirstFrame}
+    >
+      <video
+        ref={videoRef}
+        src={src}
+        loop
+        muted
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+        className={className}
+        onLoadedData={resetToFirstFrame}
+      />
+    </span>
+  );
+}
 
 /**
  * Tela dedicada ao mapa em modo full screen.
@@ -259,20 +300,9 @@ export default function FullscreenMapPage() {
         <button
           onClick={() => router.push(`/${locale}/dashboard`)}
           aria-label="Dashboard"
-          className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-primary text-primary-foreground rounded-lg border border-border shadow-md hover:opacity-90 transition-opacity flex items-center justify-center"
+          className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5 12 3l9 7.5" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 9.75V21h13.5V9.75" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 21v-6h4.5v6" />
-          </svg>
+          <AnimatedIcon src="/dashboard.mp4" />
         </button>
 
         <button
@@ -283,7 +313,8 @@ export default function FullscreenMapPage() {
           }}
           disabled={isLoading || isLocatingUser}
           aria-label={t('dashboard.goToMyLocation')}
-          className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+          title={t('dashboard.goToMyLocation')}
+          className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-card transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isLocatingUser ? (
             <LoadingPlane
@@ -293,18 +324,7 @@ export default function FullscreenMapPage() {
               className="gap-0"
             />
           ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-                <circle cx="12" cy="12" r="7" />
-                <circle cx="12" cy="12" r="2" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-            </svg>
+            <AnimatedIcon src="/navigation.mp4" className="h-6 w-6 scale-[1.12]" />
           )}
         </button>
 
@@ -315,7 +335,8 @@ export default function FullscreenMapPage() {
             router.replace(segments.join('/'));
           }}
           aria-label={t('dashboard.changeLanguage')}
-          className="pointer-events-auto h-11 min-w-11 px-2 sm:h-12 sm:min-w-12 sm:px-2.5 bg-card rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center"
+          title={t('dashboard.changeLanguage')}
+          className="pointer-events-auto h-11 min-w-11 px-2 sm:h-12 sm:min-w-12 sm:px-2.5 bg-card rounded-lg border border-border shadow-md hover:bg-card transition-colors flex items-center justify-center"
         >
           <span className="text-xl leading-none">{localeFlag}</span>
         </button>
@@ -330,7 +351,8 @@ export default function FullscreenMapPage() {
           }}
           disabled={isLoading || isLocatingUser}
           aria-label={t('dashboard.goToMyLocation')}
-          className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+          title={t('dashboard.goToMyLocation')}
+          className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-card transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isLocatingUser ? (
             <LoadingPlane
@@ -340,18 +362,7 @@ export default function FullscreenMapPage() {
               className="gap-0"
             />
           ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-                <circle cx="12" cy="12" r="7" />
-                <circle cx="12" cy="12" r="2" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-            </svg>
+            <AnimatedIcon src="/navigation.mp4" className="h-6 w-6 scale-[1.12]" />
           )}
         </button>
 
@@ -362,7 +373,8 @@ export default function FullscreenMapPage() {
             router.replace(segments.join('/'));
           }}
           aria-label={t('dashboard.changeLanguage')}
-          className="pointer-events-auto h-11 min-w-11 px-2 sm:h-12 sm:min-w-12 sm:px-2.5 bg-card rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center"
+          title={t('dashboard.changeLanguage')}
+          className="pointer-events-auto h-11 min-w-11 px-2 sm:h-12 sm:min-w-12 sm:px-2.5 bg-card rounded-lg border border-border shadow-md hover:bg-card transition-colors flex items-center justify-center"
         >
           <span className="text-xl leading-none">{localeFlag}</span>
         </button>
@@ -389,22 +401,10 @@ export default function FullscreenMapPage() {
             className={`h-11 w-11 sm:h-12 sm:w-12 rounded-lg border border-border shadow-md transition-colors flex items-center justify-center ${
               activePanel === 'cities'
                 ? 'bg-primary text-primary-foreground'
-                : 'bg-card text-card-foreground hover:bg-muted'
+                : 'bg-card text-card-foreground hover:bg-card'
             }`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 20h16" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 20V9h5v11" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 20V4h5v16" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h1m0 3h1m6-6h1m0 3h1" />
-            </svg>
+            <AnimatedIcon src="/city.mp4" />
           </button>
           <button
             onClick={() => setActivePanel((prev) => (prev === 'statistics' ? null : 'statistics'))}
@@ -414,22 +414,10 @@ export default function FullscreenMapPage() {
             className={`h-11 w-11 sm:h-12 sm:w-12 rounded-lg border border-border shadow-md transition-colors flex items-center justify-center ${
               activePanel === 'statistics'
                 ? 'bg-primary text-primary-foreground'
-                : 'bg-card text-card-foreground hover:bg-muted'
+                : 'bg-card text-card-foreground hover:bg-card'
             }`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 20h16" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 20v-6" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 20v-10" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20v-14" />
-            </svg>
+            <AnimatedIcon src="/stats.mp4" />
           </button>
         </div>
       </div>
@@ -476,9 +464,14 @@ export default function FullscreenMapPage() {
 
           <div className="h-[calc(75dvh-4.25rem)] overflow-auto p-4 md:h-[calc(100%-4.25rem)]">
             {activePanel === 'statistics' ? (
-              <Statistics places={places} />
+              <Statistics places={places} showTitle={false} />
             ) : (
-              <CityList places={places} onRemovePlace={removePlace} onReorderPlaces={reorderPlaces} />
+              <CityList
+                places={places}
+                onRemovePlace={removePlace}
+                onReorderPlaces={reorderPlaces}
+                showTitle={false}
+              />
             )}
           </div>
         </div>
@@ -516,9 +509,11 @@ export default function FullscreenMapPage() {
             </div>
             <button
               onClick={() => router.push(`/${locale}/dashboard`)}
-              className="pointer-events-auto px-3 sm:px-4 py-2 text-xs sm:text-sm bg-primary text-primary-foreground rounded-lg shadow-md hover:opacity-90 transition-opacity font-medium whitespace-nowrap"
+              aria-label="Dashboard"
+              title="Dashboard"
+              className="pointer-events-auto h-11 w-11 sm:h-12 sm:w-12 bg-card text-card-foreground rounded-lg border border-border shadow-md hover:bg-muted transition-colors flex items-center justify-center"
             >
-              Dashboard
+              <AnimatedIcon src="/dashboard.mp4" />
             </button>
           </div>
           {feedback && (

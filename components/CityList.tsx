@@ -27,6 +27,7 @@ interface CityListProps {
   places: Place[];
   onRemovePlace: (id: string) => void;
   onReorderPlaces: (startIndex: number, endIndex: number) => void;
+  showTitle?: boolean;
 }
 
 /**
@@ -135,6 +136,7 @@ export default function CityList({
   places,
   onRemovePlace,
   onReorderPlaces,
+  showTitle = true,
 }: CityListProps) {
   const t = useTranslations();
   const locale = useLocale();
@@ -168,9 +170,11 @@ export default function CityList({
   return (
     <div className="flex flex-col h-full">
       <Collapsible.Root open={open} onOpenChange={setOpen}>
-        <div className="mb-4">
-          <h3 className="font-semibold text-lg">{t('cities.visitedCities')}</h3>
-        </div>
+        {showTitle && (
+          <div className="mb-4">
+            <h3 className="font-semibold text-lg">{t('cities.visitedCities')}</h3>
+          </div>
+        )}
         <Collapsible.Content
           forceMount
           className={`flex-1 overflow-auto ${places.length > 6 && !open ? 'pb-5' : ''}`}
